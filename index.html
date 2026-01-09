@@ -36,6 +36,7 @@ function show() {
     }
 
     let resultText = "你的最高位是 " + h + "，最低是 " + l + "，玩 " + digit + " 位數<br>";
+    resultText +=stringToASCII(h)+stringToASCII(l)
 
     if (document.getElementById("showhint").checked) {
         resultText += "你要提示<br>";
