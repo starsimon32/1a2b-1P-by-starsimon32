@@ -6,7 +6,7 @@
 </head>
 <body>
 <div id="main">
-    <h2>1a2b遊戲</h2>
+    <h2>1a2b遊戲改版2</h2>
 
     最高位數上限(0~z)：<input type="string" id="high"><br>
     最低位數下限(0~z)：<input type="string" id="low"><br>
@@ -17,35 +17,35 @@
     <label><input type="checkbox" id="showhelp" checked> 要有幫忙</label><br><br>
 
     <button onclick="show()">顯示</button>
+    <p id="bmiResult"></p>
     <button onclick="clearAll()">清空畫面</button>
 
-    <p id="bmiResult"></p>
+ 
 </div>
 
 <script>
-// 計算 BMI
+
 function show() {
-    let h = Number(document.getElementById("high").value );
-    let l = Number(document.getElementById("low").value);
+    let h = document.getElementById("high").value;
+    let l = document.getElementById("low").value;
     let digit = Number(document.getElementById("digit").value);
 
-    if (!h || !w) {
+    if (!h || !l) {
         alert("請輸入最高和最低！");
         return;
     }
 
-   // let bmi = w / (h * h);
-    let resultText = "你的最高位是"+ h +"，最低是"+l+"玩"+digit+"位數\n";
+    let resultText = "你的最高位是 " + h + "，最低是 " + l + "，玩 " + digit + " 位數<br>";
 
     if (document.getElementById("showhint").checked) {
-        resultText += "你要提示" + "\n";
+        resultText += "你要提示<br>";
     }
 
     if (document.getElementById("showhelp").checked) {
-        resultText += "你要幫助" + "\n";
+        resultText += "你要幫助<br>";
     }
 
-    document.getElementById("bmiResult").innerText = resultText;
+    document.getElementById("bmiResult").innerHTML = resultText;
 }
 
 // 清空畫面並顯示新文字
