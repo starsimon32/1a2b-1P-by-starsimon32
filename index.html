@@ -1,73 +1,9 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-<meta charset="UTF-8">
-<title>1a2b遊戲</title>
-</head>
-<body>
-<div id="main">
-    <h2>1a2b遊戲改版2</h2>
-
-    最高位數上限(0~z)：<input type="string" id="high"><br>
-    最低位數下限(0~z)：<input type="string" id="low"><br>
-    要猜的位數：<input type="number" id="digit" value="2"><br><br>
-
-    <p>選擇要顯示的資訊：</p>
-    <label><input type="checkbox" id="showhint" checked>要有提示</label><br>
-    <label><input type="checkbox" id="showhelp" checked> 要有幫忙</label><br><br>
-
-    <button onclick="show()">顯示</button>
-    <p id="bmiResult"></p>
-    <button onclick="clearAll()">清空畫面</button>
-
- 
-</div>
-
-<script>
-
-function show() {
-    let h = document.getElementById("high").value;
-    let l = document.getElementById("low").value;
-    let digit = Number(document.getElementById("digit").value);
-
-    if (!h || !l) {
-        alert("請輸入最高和最低！");
-        return;
+function stringToASCII(str) {
+    let arr = [];
+    for (let i = 0; i < str.length; i++) {
+        arr.push(str.charCodeAt(i));
     }
-
-    let resultText = "你的最高位是 " + h + "，最低是 " + l + "，玩 " + digit + " 位數<br>";
-
-    if (document.getElementById("showhint").checked) {
-        resultText += "你要提示<br>";
-    }
-
-    if (document.getElementById("showhelp").checked) {
-        resultText += "你要幫助<br>";
-    }
-
-    document.getElementById("bmiResult").innerHTML = resultText;
+    return arr;
 }
 
-// 清空畫面並顯示新文字
-function clearAll() {
-    const mainDiv = document.getElementById("main");
-    mainDiv.innerHTML = ""; // 清掉所有內容
-
-    // 新文字提示
-    const newTitle = document.createElement("h2");
-    newTitle.innerText = "畫面已清空！歡迎重新開始";
-    mainDiv.appendChild(newTitle);
-
-    const infoText = document.createElement("p");
-    infoText.innerText = "請重新輸入身高、體重，或按下下方按鈕重新開始。";
-    mainDiv.appendChild(infoText);
-
-    // 重新開始按鈕
-    const restartBtn = document.createElement("button");
-    restartBtn.innerText = "重新開始";
-    restartBtn.onclick = () => location.reload(); // 重新載入頁面
-    mainDiv.appendChild(restartBtn);
-}
-</script>
-</body>
-</html>
+//console.log(stringToASCII("ABC123")); // [65, 66, 67, 49, 50, 51]
