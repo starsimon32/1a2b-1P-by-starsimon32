@@ -15,7 +15,7 @@ const state = {
     playerName: "",
     digit: 0,
     fakeInput: "",
-    usehint:true
+    useHint: true
 };
 
 /* ========= 畫面 1 ========= */
@@ -36,9 +36,10 @@ function renderStartPage() {
         <br><br>
 
         <label>
-            是否使用提示
-            <input type="checkbox" id="useHint" checked>
+            是否使用提示：
+            <input type="checkbox" id="useHint" ${state.useHint ? "checked" : ""}>
         </label>
+        <br><br>
 
         <button onclick="startGame()">開始遊戲</button>
     `;
@@ -48,6 +49,7 @@ function startGame() {
     state.playerName = document.getElementById("nameInput").value;
     state.digit = Number(document.getElementById("digitInput").value);
     state.useHint = document.getElementById("useHint").checked;
+
     renderGamePage();
 }
 
@@ -58,7 +60,8 @@ function renderGamePage() {
 
         <p>玩家：${state.playerName}</p>
         <p>遊戲位數：${state.digit}</p>
-        showHintStatus()
+        <p id="hintStatus"></p>
+
         <input id="gameInput" placeholder="隨便輸入（示範）">
         <button onclick="fakeCheck()">送出</button>
 
@@ -68,6 +71,9 @@ function renderGamePage() {
         <button onclick="renderResultPage()">直接到結果畫面</button>
         <button onclick="renderStartPage()">回開始畫面</button>
     `;
+
+    // 顯示提示狀態
+    showHintStatus();
 }
 
 function fakeCheck() {
@@ -84,15 +90,16 @@ function renderResultPage() {
         <p>玩家：${state.playerName}</p>
         <p>遊戲位數：${state.digit}</p>
         <p>最後一次輸入：${state.fakeInput}</p>
+        <p>提示是否開啟：${state.useHint ? "是" : "否"}</p>
 
         <button onclick="renderStartPage()">重新開始</button>
     `;
 }
-//其他
+
+// 顯示提示狀態
 function showHintStatus() {
-    const useHint = document.getElementById("useHint").checked;
     const el = document.getElementById("hintStatus");
-    el.innerText = useHint ? "提示已開啟" : "提示已關閉";
+    el.innerText = state.useHint ? "提示已開啟" : "提示已關閉";
 }
 </script>
 
