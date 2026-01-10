@@ -1,10 +1,42 @@
-function charToASCII_0_to_Z(ch) {
-    if (typeof ch !== "string" || ch.length !== 1) {
-        return null;
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>1a2b遊戲</title>
+</head>
+<body>
+<div id="main">
+    <h2>1a2b遊戲改版3</h2>
+
+    最高位數上限(0~z)：<input type="string" id="high"><br>
+    最低位數下限(0~z)：<input type="string" id="low"><br>
+    要猜的位數：<input type="number" id="digit" value="2"><br><br>
+
+    <p>選擇要顯示的資訊：</p>
+    <label><input type="checkbox" id="showhint" checked>要有提示</label><br>
+    <label><input type="checkbox" id="showhelp" checked> 要有幫忙</label><br><br>
+
+    <button onclick="show()">顯示</button>
+    <p id="bmiResult"></p>
+    <button onclick="clearAll()">清空畫面</button>
+
+ 
+</div>
+
+<script>
+
+function show() {
+    let h = document.getElementById("high").value;
+    let l = document.getElementById("low").value;
+    let digit = Number(document.getElementById("digit").value);
+
+    if (!h || !l) {
+        alert("請輸入最高和最低！");
+        return;
     }
 
-    ch = ch.toUpperCase();
-    const code = ch.charCodeAt(0);
+    let resultText = "你的最高位是 " + h + "，最低是 " + l + "，玩 " + digit + " 位數<br>";
+    //resultText +=stringToASCII(h)+stringToASCII(l)
 
     // 0-9 or A-Z
     if (
