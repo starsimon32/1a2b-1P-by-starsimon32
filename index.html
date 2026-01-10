@@ -5,6 +5,7 @@
 <title>1A2B 完整教學 SPA</title>
 <style>
 button { margin: 2px; }
+input { width: 40px; text-align: center; }
 </style>
 </head>
 
@@ -26,7 +27,7 @@ const state = {
 /* ========= 可用字元集合 ========= */
 const allowedChars = "0123456789abcdef";
 
-/* ========= 畫面 1：開始畫面 ========= */
+/* ========= 畫面 1 ========= */
 function renderStartPage() {
     document.getElementById("app").innerHTML = `
         <h2>開始畫面</h2>
@@ -49,7 +50,7 @@ function renderStartPage() {
 
         <label>
             最低位：
-            <input id="lowInput" value="${state.low}" readonly>
+            <input id="lowInput" value="${state.low}" maxlength="1">
             <button onclick="decrement('lowInput')">↓</button>
             <button onclick="increment('lowInput')">↑</button>
         </label>
@@ -57,7 +58,7 @@ function renderStartPage() {
 
         <label>
             最高位：
-            <input id="highInput" value="${state.high}" readonly>
+            <input id="highInput" value="${state.high}" maxlength="1">
             <button onclick="decrement('highInput')">↓</button>
             <button onclick="increment('highInput')">↑</button>
         </label>
@@ -65,20 +66,42 @@ function renderStartPage() {
 
         <button onclick="startGame()">開始遊戲</button>
     `;
+
+    // 允許直接手動輸入時檢查合法字元
+    setupCharInput('lowInput');
+    setupCharInput('highInput');
 }
 
-/* 將開始畫面資料存進 state 並跳到遊戲畫面 */
+/* ========= 開始遊戲 ========= */
 function startGame() {
+    // 讀取資料
     state.playerName = document.getElementById("nameInput").value;
     state.digit = Number(document.getElementById("digitInput").value);
     state.useHint = document.getElementById("useHint").checked;
-    state.low = document.getElementById("lowInput").value;
-    state.high = document.getElementById("highInput").value;
+
+    // 先讀上下限
+    let low = document.getElementById("lowInput").value.toLowerCase();
+    let high = document.getElementById("highInput").value.toLowerCase();
+
+    // 檢查是否在 allowedChars
+    if (!allowedChars.includes(low) || !allowedChars.includes(high)) {
+        alert("上下限只能輸入 0~f 的字元！");
+        return;
+    }
+
+    // 檢查順序
+    if (allowedChars.indexOf(high) < allowedChars.indexOf(low)) {
+        alert("最高位不能小於最低位，請重新輸入！");
+        return;
+    }
+
+    state.low = low;
+    state.high = high;
 
     renderGamePage();
 }
 
-/* ========= 畫面 2：遊戲畫面 ========= */
+/* ========= 畫面 2 ========= */
 function renderGamePage() {
     document.getElementById("app").innerHTML = `
         <h2>遊戲畫面</h2>
@@ -101,14 +124,13 @@ function renderGamePage() {
     showHintStatus();
 }
 
-/* 假互動示範 */
 function fakeCheck() {
     state.fakeInput = document.getElementById("gameInput").value;
     document.getElementById("gameMessage").innerText =
         "你剛剛輸入了：" + state.fakeInput;
 }
 
-/* ========= 畫面 3：結果畫面 ========= */
+/* ========= 畫面 3 ========= */
 function renderResultPage() {
     document.getElementById("app").innerHTML = `
         <h2>結果畫面</h2>
@@ -123,25 +145,36 @@ function renderResultPage() {
     `;
 }
 
-/* 顯示提示開關狀態 */
+/* ========= 顯示提示開關 ========= */
 function showHintStatus() {
     const el = document.getElementById("hintStatus");
     el.innerText = state.useHint ? "已開啟" : "已關閉";
 }
 
-/* ========= 自訂上下限按鈕 ========= */
+/* ========= 上下限按鈕 ========= */
 function increment(inputId) {
     const el = document.getElementById(inputId);
-    let idx = allowedChars.indexOf(el.value);
+    let idx = allowedChars.indexOf(el.value.toLowerCase());
     idx = (idx + 1) % allowedChars.length;
     el.value = allowedChars[idx];
 }
 
 function decrement(inputId) {
     const el = document.getElementById(inputId);
-    let idx = allowedChars.indexOf(el.value);
+    let idx = allowedChars.indexOf(el.value.toLowerCase());
     idx = (idx - 1 + allowedChars.length) % allowedChars.length;
     el.value = allowedChars[idx];
+}
+
+/* ========= 允許直接輸入但檢查合法字元 ========= */
+function setupCharInput(inputId) {
+    const el = document.getElementById(inputId);
+    el.addEventListener("input", () => {
+        let val = el.value.toLowerCase();
+        if (val.length > 1) val = val.slice(-1); // 只取最後一個字
+        if (!allowedChars.includes(val)) val = ""; // 非法清空
+        el.value = val;
+    });
 }
 </script>
 
