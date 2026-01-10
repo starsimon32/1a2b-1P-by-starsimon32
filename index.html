@@ -2,50 +2,86 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1a2b遊戲</title>
+<title>1A2B 教學 SPA</title>
 </head>
-<body>
-<div id="main">
-    <h2>1a2b遊戲改版3</h2>
 
-    最高位數上限(0~z)：<input type="string" id="high"><br>
-    最低位數下限(0~z)：<input type="string" id="low"><br>
-    要猜的位數：<input type="number" id="digit" value="2"><br><br>
+<body onload="renderStartPage()">
 
-    <p>選擇要顯示的資訊：</p>
-    <label><input type="checkbox" id="showhint" checked>要有提示</label><br>
-    <label><input type="checkbox" id="showhelp" checked> 要有幫忙</label><br><br>
-
-    <button onclick="show()">顯示</button>
-    <p id="bmiResult"></p>
-    <button onclick="clearAll()">清空畫面</button>
-
- 
-</div>
+<div id="app"></div>
 
 <script>
+/* ========= 全域狀態 ========= */
+const state = {
+    playerName: "",
+    digit: 0,
+    fakeInput: ""
+};
 
-function show() {
-    let h = document.getElementById("high").value;
-    let l = document.getElementById("low").value;
-    let digit = Number(document.getElementById("digit").value);
+/* ========= 畫面 1 ========= */
+function renderStartPage() {
+    document.getElementById("app").innerHTML = `
+        <h2>開始畫面</h2>
 
-    if (!h || !l) {
-        alert("請輸入最高和最低！");
-        return;
-    }
+        <label>
+            玩家名稱：
+            <input id="nameInput" placeholder="輸入名字">
+        </label>
+        <br><br>
 
-    let resultText = "你的最高位是 " + h + "，最低是 " + l + "，玩 " + digit + " 位數<br>";
-    //resultText +=stringToASCII(h)+stringToASCII(l)
+        <label>
+            遊戲位數：
+            <input id="digitInput" type="number" value="4">
+        </label>
+        <br><br>
 
-    // 0-9 or A-Z
-    if (
-        (code >= 48 && code <= 57) ||
-        (code >= 65 && code <= 90)
-    ) {
-        return code;
-    }
-
-    return null;
+        <button onclick="startGame()">開始遊戲</button>
+    `;
 }
-//console.log(stringToASCII("ABC123")); // [65, 66, 67, 49, 50, 51]
+
+function startGame() {
+    state.playerName = document.getElementById("nameInput").value;
+    state.digit = Number(document.getElementById("digitInput").value);
+    renderGamePage();
+}
+
+/* ========= 畫面 2 ========= */
+function renderGamePage() {
+    document.getElementById("app").innerHTML = `
+        <h2>遊戲畫面</h2>
+
+        <p>玩家：${state.playerName}</p>
+        <p>遊戲位數：${state.digit}</p>
+
+        <input id="gameInput" placeholder="隨便輸入（示範）">
+        <button onclick="fakeCheck()">送出</button>
+
+        <p id="gameMessage"></p>
+
+        <br>
+        <button onclick="renderResultPage()">直接到結果畫面</button>
+        <button onclick="renderStartPage()">回開始畫面</button>
+    `;
+}
+
+function fakeCheck() {
+    state.fakeInput = document.getElementById("gameInput").value;
+    document.getElementById("gameMessage").innerText =
+        "你剛剛輸入了：" + state.fakeInput;
+}
+
+/* ========= 畫面 3 ========= */
+function renderResultPage() {
+    document.getElementById("app").innerHTML = `
+        <h2>結果畫面</h2>
+
+        <p>玩家：${state.playerName}</p>
+        <p>遊戲位數：${state.digit}</p>
+        <p>最後一次輸入：${state.fakeInput}</p>
+
+        <button onclick="renderStartPage()">重新開始</button>
+    `;
+}
+</script>
+
+</body>
+</html>
