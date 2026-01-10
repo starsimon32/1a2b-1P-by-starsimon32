@@ -2,7 +2,10 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 教學 SPA</title>
+<title>1A2B 完整教學 SPA</title>
+<style>
+button { margin: 2px; }
+</style>
 </head>
 
 <body onload="renderStartPage()">
@@ -13,25 +16,28 @@
 /* ========= 全域狀態 ========= */
 const state = {
     playerName: "",
-    digit: 0,
+    digit: 4,
     fakeInput: "",
-    useHint: true
+    useHint: true,
+    low: "0",
+    high: "9"
 };
 
-/* ========= 畫面 1 ========= */
+/* ========= 可用字元集合 ========= */
+const allowedChars = "0123456789abcdef";
+
+/* ========= 畫面 1：開始畫面 ========= */
 function renderStartPage() {
     document.getElementById("app").innerHTML = `
         <h2>開始畫面</h2>
 
-        <label>
-            玩家名稱：
-            <input id="nameInput" placeholder="輸入名字">
+        <label>玩家名稱：
+            <input id="nameInput" placeholder="輸入名字" value="${state.playerName}">
         </label>
         <br><br>
 
-        <label>
-            遊戲位數：
-            <input id="digitInput" type="number" value="4">
+        <label>遊戲位數：
+            <input id="digitInput" type="number" value="${state.digit}">
         </label>
         <br><br>
 
@@ -41,26 +47,46 @@ function renderStartPage() {
         </label>
         <br><br>
 
+        <label>
+            最低位：
+            <input id="lowInput" value="${state.low}" readonly>
+            <button onclick="decrement('lowInput')">↓</button>
+            <button onclick="increment('lowInput')">↑</button>
+        </label>
+        <br><br>
+
+        <label>
+            最高位：
+            <input id="highInput" value="${state.high}" readonly>
+            <button onclick="decrement('highInput')">↓</button>
+            <button onclick="increment('highInput')">↑</button>
+        </label>
+        <br><br>
+
         <button onclick="startGame()">開始遊戲</button>
     `;
 }
 
+/* 將開始畫面資料存進 state 並跳到遊戲畫面 */
 function startGame() {
     state.playerName = document.getElementById("nameInput").value;
     state.digit = Number(document.getElementById("digitInput").value);
     state.useHint = document.getElementById("useHint").checked;
+    state.low = document.getElementById("lowInput").value;
+    state.high = document.getElementById("highInput").value;
 
     renderGamePage();
 }
 
-/* ========= 畫面 2 ========= */
+/* ========= 畫面 2：遊戲畫面 ========= */
 function renderGamePage() {
     document.getElementById("app").innerHTML = `
         <h2>遊戲畫面</h2>
 
         <p>玩家：${state.playerName}</p>
         <p>遊戲位數：${state.digit}</p>
-        <p id="hintStatus"></p>
+        <p>提示狀態：<span id="hintStatus"></span></p>
+        <p>範圍：${state.low} ~ ${state.high}</p>
 
         <input id="gameInput" placeholder="隨便輸入（示範）">
         <button onclick="fakeCheck()">送出</button>
@@ -72,17 +98,17 @@ function renderGamePage() {
         <button onclick="renderStartPage()">回開始畫面</button>
     `;
 
-    // 顯示提示狀態
     showHintStatus();
 }
 
+/* 假互動示範 */
 function fakeCheck() {
     state.fakeInput = document.getElementById("gameInput").value;
     document.getElementById("gameMessage").innerText =
         "你剛剛輸入了：" + state.fakeInput;
 }
 
-/* ========= 畫面 3 ========= */
+/* ========= 畫面 3：結果畫面 ========= */
 function renderResultPage() {
     document.getElementById("app").innerHTML = `
         <h2>結果畫面</h2>
@@ -91,15 +117,31 @@ function renderResultPage() {
         <p>遊戲位數：${state.digit}</p>
         <p>最後一次輸入：${state.fakeInput}</p>
         <p>提示是否開啟：${state.useHint ? "是" : "否"}</p>
+        <p>範圍：${state.low} ~ ${state.high}</p>
 
         <button onclick="renderStartPage()">重新開始</button>
     `;
 }
 
-// 顯示提示狀態
+/* 顯示提示開關狀態 */
 function showHintStatus() {
     const el = document.getElementById("hintStatus");
-    el.innerText = state.useHint ? "提示已開啟" : "提示已關閉";
+    el.innerText = state.useHint ? "已開啟" : "已關閉";
+}
+
+/* ========= 自訂上下限按鈕 ========= */
+function increment(inputId) {
+    const el = document.getElementById(inputId);
+    let idx = allowedChars.indexOf(el.value);
+    idx = (idx + 1) % allowedChars.length;
+    el.value = allowedChars[idx];
+}
+
+function decrement(inputId) {
+    const el = document.getElementById(inputId);
+    let idx = allowedChars.indexOf(el.value);
+    idx = (idx - 1 + allowedChars.length) % allowedChars.length;
+    el.value = allowedChars[idx];
 }
 </script>
 
