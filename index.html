@@ -38,37 +38,14 @@ function show() {
     let resultText = "你的最高位是 " + h + "，最低是 " + l + "，玩 " + digit + " 位數<br>";
     //resultText +=stringToASCII(h)+stringToASCII(l)
 
-    if (document.getElementById("showhint").checked) {
-        resultText += "你要提示<br>";
+    // 0-9 or A-Z
+    if (
+        (code >= 48 && code <= 57) ||
+        (code >= 65 && code <= 90)
+    ) {
+        return code;
     }
 
-    if (document.getElementById("showhelp").checked) {
-        resultText += "你要幫助<br>";
-    }
-
-    document.getElementById("bmiResult").innerHTML = resultText;
+    return null;
 }
-
-// 清空畫面並顯示新文字
-function clearAll() {
-    const mainDiv = document.getElementById("main");
-    mainDiv.innerHTML = ""; // 清掉所有內容
-
-    // 新文字提示
-    const newTitle = document.createElement("h2");
-    newTitle.innerText = "畫面已清空！歡迎重新開始";
-    mainDiv.appendChild(newTitle);
-
-    const infoText = document.createElement("p");
-    infoText.innerText = "請重新輸入身高、體重，或按下下方按鈕重新開始。";
-    mainDiv.appendChild(infoText);
-
-    // 重新開始按鈕
-    const restartBtn = document.createElement("button");
-    restartBtn.innerText = "重新開始";
-    restartBtn.onclick = () => location.reload(); // 重新載入頁面
-    mainDiv.appendChild(restartBtn);
-}
-</script>
-</body>
-</html>
+//console.log(stringToASCII("ABC123")); // [65, 66, 67, 49, 50, 51]
