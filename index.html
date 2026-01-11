@@ -95,7 +95,7 @@ function startGame() {
         return;
     }
     // 檢查可否重複
-    if(state.useRepeat===true && (CharToInt(high)-CharToInt(low))<state.digit){
+    if(state.useRepeat===false && (CharToInt(high)-CharToInt(low))<state.digit){
         alert("這樣設定一定會重複唷");
         return;
     }
@@ -120,16 +120,23 @@ function renderGamePage() {
 
         <p id="gameMessage"></p>
         <p id="testnumber"></p>
+        <p id="givehint"></p>
 
         <br>
         <button onclick="renderResultPage()">直接到結果畫面</button>
         <button onclick="renderStartPage()">回開始畫面</button>
+        <button onclick="showhint()">提示</button>
+        
     `;
 
     showRepeatStatus();
     showTestNumber();
+    
 }
-
+/* ========= 提示 ========= */
+function showhint(){
+    document.getElementById("givehint").innerText = `這裡之後會輸入提示`;
+}
 /* ========= 顯示允許重複狀態 ========= */
 function showRepeatStatus() {
     const el = document.getElementById("RepeatStatus"); // 修正 id
