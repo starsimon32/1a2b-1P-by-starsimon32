@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版34</title>
+<title>1A2B 改版35</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -174,9 +174,22 @@ function startGame(){
 /* ========= 遊戲畫面 ========= */
 function renderGamePage(){
     const app=document.getElementById("app");
+    let titleWords = "";
+    if(state.answerbyuser === false){
+        titleWords = "猜電腦數字";
+    } else {
+        titleWords = `猜${state.playerName}出的數字`; // 使用反引號
+    }
+
+    let InnerTexts = "";
+    if(state.answerbyuser === false){
+        InnerTexts = `玩家：${state.playerName}`;
+    } else {
+        InnerTexts = `出題者：${state.playerName}`; // 使用反引號
+    }
     app.innerHTML=`
-        <h2 class="game-title">猜電腦數字</h2>
-        <p>玩家：${state.playerName}</p>
+        <h2 class="game-title">${titleWords}</h2>
+        <p>${InnerTexts}</p>
         <p id="historys"></p>
         <p>第 ${state.guesscount+1} 次猜測</p>
         <input id="guessInput">
