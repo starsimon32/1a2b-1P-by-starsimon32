@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版36</title>
+<title>1A2B 改版37</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -192,6 +192,7 @@ function renderGamePage(){
     app.innerHTML=`
         <h2 class="game-title">${titleWords}</h2>
         <p>${InnerTexts}</p>
+        <p>請猜${state.digit}位數，上限${state.high}，下限${state.low}</p>
         <p id="historys"></p>
         <p>第 ${state.guesscount+1} 次猜測</p>
         <input id="guessInput">
