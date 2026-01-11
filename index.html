@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B SPA 完整可執行版15</title>
+<title>1A2B SPA 完整可執行版16</title>
 <style>
 button { margin: 4px; }
 input { width: 80px; text-align: center; }
@@ -206,10 +206,10 @@ function giveHint(){
 
 /* ========= 歷史 ========= */
 function showHistory(){
-    let html = "<h3>歷史紀錄</h3>";
+    let html = "歷史紀錄";
     for(let i = 0; i < state.history.length; i++){
         let h = state.history[i];
-        html += `<p>${i + 1}. ${h.guess} → ${h.A}A${h.B}B</p>`;
+        html += `第${i + 1}次猜測是${h.guess} → ${h.A}A${h.B}B`;
     }
     historys.innerText = html;
 }
