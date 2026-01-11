@@ -2,10 +2,10 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 完整教學12 SPA </title>
+<title>1A2B 完整教學13 SPA（修正版）</title>
 <style>
 button { margin: 2px; }
-input { width: 40px; text-align: center; }
+input { width: 60px; text-align: center; }
 </style>
 </head>
 
@@ -18,71 +18,85 @@ input { width: 40px; text-align: center; }
 const state = {
     playerName: "",
     digit: 4,
-    fakeInput: "",
     useRepeat: true,
     low: "0",
     high: "9",
-    answer:"",
-    guesscount:0,
-    haveGuessed:false,
-    guess:"",
-    history:[]
+    answer: "",
+    guesscount: 0,
+    haveGuessed: false,
+    history: []
 };
 
-/* ========= 可用字元集合 ========= */
+/* ========= 可用字元 ========= */
 const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
 
-/* ========= 畫面 1 ========= */
-function renderStartPage() {
+/* ========= 輸入檢查 ========= */
+function alert_guesswrong(input){
+    if(input.length !== state.digit){
+        alert("輸入長度錯誤！");
+        return false;
+    }
+
+    for(let i = 0; i < input.length; i++){
+        let idx = CharToInt(input[i]);
+
+        if(idx === -1){
+            alert(`第 ${i + 1} 位含有非法字元`);
+            return false;
+        }
+
+        if(idx < CharToInt(state.low) || idx > CharToInt(state.high)){
+            alert(`第 ${i + 1} 位超出限制範圍`);
+            return false;
+        }
+    }
+
+    if(!state.useRepeat){
+        let set = new Set(input);
+        if(set.size !== input.length){
+            alert("目前設定不允許重複字元");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/* ========= 開始畫面 ========= */
+function renderStartPage(){
     document.getElementById("app").innerHTML = `
         <h2>開始畫面</h2>
 
-        <label>玩家名稱：
-            <input id="nameInput" placeholder="輸入名字" value="${state.playerName}">
-        </label>
-        <br><br>
+        玩家名稱：
+        <input id="nameInput" value="${state.playerName}"><br><br>
 
-        <label>遊戲位數：
-            <input id="digitInput" type="number" value="${state.digit}">
-        </label>
-        <br><br>
+        位數：
+        <input id="digitInput" type="number" value="${state.digit}"><br><br>
 
-        <label>
-            是否允許重複：
-            <input type="checkbox" id="useRepeat" ${state.useRepeat ? "checked" : ""}>
-        </label>
-        <br><br>
+        允許重複：
+        <input type="checkbox" id="useRepeat" ${state.useRepeat ? "checked" : ""}><br><br>
 
-        <label>
-            最低位：
-            <input id="lowInput" value="${state.low}" maxlength="1">
-            <button onclick="decrement('lowInput')">↓</button>
-            <button onclick="increment('lowInput')">↑</button>
-        </label>
-        <br><br>
+        最低位：
+        <input id="lowInput" value="${state.low}" maxlength="1">
+        <button onclick="decrement('lowInput')">↓</button>
+        <button onclick="increment('lowInput')">↑</button><br><br>
 
-        <label>
-            最高位：
-            <input id="highInput" value="${state.high}" maxlength="1">
-            <button onclick="decrement('highInput')">↓</button>
-            <button onclick="increment('highInput')">↑</button>
-        </label>
-        <br><br>
+        最高位：
+        <input id="highInput" value="${state.high}" maxlength="1">
+        <button onclick="decrement('highInput')">↓</button>
+        <button onclick="increment('highInput')">↑</button><br><br>
 
-        <button onclick="startGame()">測試員測試</button>
-        <button onclick="computerIsanswer_alerts()">猜電腦題目</button>
+        <button onclick="computerIsanswer_alerts()">開始猜電腦</button>
     `;
 
-    setupCharInput('lowInput');
-    setupCharInput('highInput');
+    setupCharInput("lowInput");
+    setupCharInput("highInput");
 
-    state.guesscount = 0;
-    state.haveGuessed = false;
     state.history = [];
 }
 
-/* ========= 讀取設定共用函式 ========= */
-function readSettings() {
+/* ========= 讀取設定 ========= */
+function readSettings(){
     state.playerName = document.getElementById("nameInput").value;
     state.digit = Number(document.getElementById("digitInput").value);
     state.useRepeat = document.getElementById("useRepeat").checked;
@@ -91,17 +105,17 @@ function readSettings() {
     let high = document.getElementById("highInput").value.toLowerCase();
 
     if(!allowedChars.includes(low) || !allowedChars.includes(high)){
-        alert("上下限只能輸入 0~z 的字元！");
+        alert("上下限只能是 0~z");
         return false;
     }
 
-    if(allowedChars.indexOf(high) < allowedChars.indexOf(low)){
-        alert("最高位不能小於最低位！");
+    if(CharToInt(high) < CharToInt(low)){
+        alert("最高位不能小於最低位");
         return false;
     }
 
     if(!state.useRepeat && (CharToInt(high) - CharToInt(low) + 1) < state.digit){
-        alert("這樣設定一定會重複唷");
+        alert("字元數不足，必定重複");
         return false;
     }
 
@@ -110,271 +124,150 @@ function readSettings() {
     return true;
 }
 
-/* ========= 開始遊戲 ========= */
-function startGame(){
-    if(!readSettings()) return;
-    renderGamePage();
-}
-
-/* ========= 電腦題目 ========= */
+/* ========= 電腦出題 ========= */
 function computerIsanswer_alerts(){
     if(!readSettings()) return;
+
     state.answer = state.useRepeat ? RandomNumberRepeat() : RandomNumberNoRepeat();
     state.guesscount = 0;
     state.haveGuessed = false;
     state.history = [];
-    computerIsanswer_pic2();
+
+    renderComputerGame();
 }
 
-function computerIsanswer_pic2(){
+/* ========= 猜電腦畫面 ========= */
+function renderComputerGame(){
     document.getElementById("app").innerHTML = `
-        <h2>電腦題目畫面</h2>
-        <p id="computerIsinput_Showhistory"></p>
+        <h2>猜電腦題目</h2>
+
         <p>玩家：${state.playerName}</p>
-        <p>電腦答案是：${state.answer}，此畫面之後會有遊玩，目前猜第${state.guesscount + 1}次</p>
-        <input id="computerIsinput_guess" value="">
-        <p id="computerIsinput_AB"></p>
+        <p>第 ${state.guesscount + 1} 次猜測</p>
+
+        <input id="guessInput">
         <button onclick="f_guess()">猜</button>
-        <button onclick="f_guessnext()">猜下一組數字</button>
-        <button onclick="renderStartPage()">回開始畫面</button>
+        <button onclick="f_guessnext()">下一次</button>
+        <button onclick="renderStartPage()">回開始</button>
+
+        <p id="result"></p>
+        <div id="history"></div>
     `;
+
     showHistory();
 }
 
-/* ========= 猜下一組 ========= */
+/* ========= 猜 ========= */
+function f_guess(){
+    if(state.haveGuessed){
+        alert("這一回合已猜過");
+        return;
+    }
+
+    let input = document.getElementById("guessInput").value;
+
+    if(!alert_guesswrong(input)) return;
+
+    let A = checkA(state.answer, input);
+    let B = checkB(state.answer, input);
+
+    state.haveGuessed = true;
+    state.history.push({guess: input, A, B});
+
+    document.getElementById("result").innerText =
+        `${input} → ${A}A${B}B`;
+
+    showHistory();
+}
+
+/* ========= 下一次 ========= */
 function f_guessnext(){
-    if(state.haveGuessed===false){
-        alert("你還沒猜呢~");
+    if(!state.haveGuessed){
+        alert("請先猜一次");
         return;
     }
     state.haveGuessed = false;
     state.guesscount++;
-    computerIsanswer_pic2();
+    renderComputerGame();
 }
 
-/* ========= 猜數字 ========= */
-function f_guess(){
-    let input = document.getElementById("computerIsinput_guess").value;
-    if(input.length !== state.digit){
-        alert("輸入長度錯誤！");
-        return;
-    }
-    if(state.haveGuessed){
-        alert("你已經猜過了~");
-        return;
-    }
-
-    state.guess = input;
-    let A = checkA(state.answer, state.guess);
-    let B = checkB(state.answer, state.guess);
-
-    state.haveGuessed = true;
-    state.history.push({guess: state.guess, A: A, B: B});
-
-    document.getElementById("computerIsinput_AB").innerText =
-        `你剛剛輸入了：${state.guess} 是 ${A}A${B}B`;
-
-    showHistory();
-}
-
-/* ========= 顯示歷史紀錄 ========= */
+/* ========= 顯示歷史 ========= */
 function showHistory(){
     let html = "<h3>歷史紀錄</h3>";
     for(let i = 0; i < state.history.length; i++){
-        html += `<p>${i + 1}. ${state.history[i].guess} → ${state.history[i].A}A${state.history[i].B}B</p>`;
+        let h = state.history[i];
+        html += `<p>${i + 1}. ${h.guess} → ${h.A}A${h.B}B</p>`;
     }
-    document.getElementById("computerIsinput_Showhistory").innerHTML = html;
+    document.getElementById("history").innerHTML = html;
 }
 
-/* ========= 畫面 2 ========= */
-function renderGamePage() {
-    document.getElementById("app").innerHTML = `
-        <h2>遊戲畫面</h2>
-
-        <p>玩家：${state.playerName}</p>
-        <p>遊戲位數：${state.digit}</p>
-        <p>允許重複狀態：<span id="RepeatStatus"></span></p>
-        <p>範圍：${state.low} ~ ${state.high}</p>
-
-        <input id="gameInput" placeholder="隨便輸入（示範）">
-        <button onclick="fakeCheck()">送出</button>
-
-        <p id="gameMessage"></p>
-        <p id="testnumber"></p>
-        <p id="givehint"></p>
-        <p id="givehelp"></p>
-
-        <br>
-        <button onclick="renderResultPage()">直接到結果畫面</button>
-        <button onclick="renderStartPage()">回開始畫面</button>
-        <button onclick="showhint()">提示</button>
-        <button onclick="showhelp()">幫助</button>
-    `;
-
-    showRepeatStatus();
-    showTestNumber();
+/* ========= 輔助 ========= */
+function increment(id){
+    let el = document.getElementById(id);
+    let i = allowedChars.indexOf(el.value);
+    el.value = allowedChars[(i + 1) % allowedChars.length];
 }
 
-/* ========= 提示/幫助 ========= */
-function showhint(){
-    document.getElementById("givehint").innerText = `這裡之後會輸入提示`;
-}
-function showhelp(){
-    document.getElementById("givehelp").innerText = `這裡之後會輸入幫助`;
+function decrement(id){
+    let el = document.getElementById(id);
+    let i = allowedChars.indexOf(el.value);
+    el.value = allowedChars[(i - 1 + allowedChars.length) % allowedChars.length];
 }
 
-/* ========= 顯示允許重複狀態 ========= */
-function showRepeatStatus() {
-    const el = document.getElementById("RepeatStatus");
-    el.innerText = state.useRepeat ? "已允許" : "不允許";
-}
-
-/* ========= 顯示測試亂數 ========= */
-function showTestNumber() {
-    let a = RandomNumberNoRepeat();
-    let b = RandomNumberRepeat();
-    document.getElementById("testnumber").innerText = `不重複：${a}，重複：${b}`;
-}
-
-/* ========= 模擬檢查輸入 ========= */
-function fakeCheck() {
-    state.fakeInput = document.getElementById("gameInput").value;
-    document.getElementById("gameMessage").innerText =
-    `你剛剛輸入了：${state.fakeInput} 是 ${checkA("1234", state.fakeInput)}A${checkB("1234", state.fakeInput)}B`;
-}
-
-/* ========= 畫面 3 ========= */
-function renderResultPage() {
-    document.getElementById("app").innerHTML = `
-        <h2>結果畫面</h2>
-
-        <p>玩家：${state.playerName}</p>
-        <p>遊戲位數：${state.digit}</p>
-        <p>最後一次輸入：${state.fakeInput}</p>
-        <p>允許重複：${state.useRepeat ? "是" : "否"}</p>
-        <p>範圍：${state.low} ~ ${state.high}</p>
-
-        <button onclick="renderStartPage()">重新開始</button>
-    `;
-}
-
-/* ========= 上下限按鈕 ========= */
-function increment(inputId) {
-    const el = document.getElementById(inputId);
-    let idx = allowedChars.indexOf(el.value.toLowerCase());
-    idx = (idx + 1) % allowedChars.length;
-    el.value = allowedChars[idx];
-}
-
-function decrement(inputId) {
-    const el = document.getElementById(inputId);
-    let idx = allowedChars.indexOf(el.value.toLowerCase());
-    idx = (idx - 1 + allowedChars.length) % allowedChars.length;
-    el.value = allowedChars[idx];
-}
-
-/* ========= 允許直接輸入但檢查合法字元 ========= */
-function setupCharInput(inputId) {
-    const el = document.getElementById(inputId);
+function setupCharInput(id){
+    let el = document.getElementById(id);
     el.addEventListener("input", () => {
-        let val = el.value.toLowerCase();
-        if (val.length > 1) val = val.slice(-1);
-        if (!allowedChars.includes(val)) val = "";
-        el.value = val;
+        let v = el.value.toLowerCase();
+        if(!allowedChars.includes(v)) el.value = "";
     });
 }
 
-/* ========= 亂數產生函式 ========= */
-function RandomNumberNoRepeat() {
-    const start = allowedChars.indexOf(state.low);
-    const end = allowedChars.indexOf(state.high);
-    if (start === -1 || end === -1 || start > end) {
-        alert("亂數範圍錯誤");
-        return "";
-    }
-
-    if (state.digit > end - start + 1) {
-        alert("位數超過可用字元數");
-        return "";
-    }
-
+/* ========= 亂數 ========= */
+function RandomNumberNoRepeat(){
+    let start = CharToInt(state.low);
+    let end = CharToInt(state.high);
     let pool = allowedChars.slice(start, end + 1).split("");
-    let result = "";
-
-    for (let i = 0; i < state.digit; i++) {
-        const idx = Math.floor(Math.random() * pool.length);
-        result += pool[idx];
+    let r = "";
+    for(let i = 0; i < state.digit; i++){
+        let idx = Math.floor(Math.random() * pool.length);
+        r += pool[idx];
         pool.splice(idx, 1);
     }
-
-    return result;
+    return r;
 }
 
-function RandomNumberRepeat() {
-    const start = allowedChars.indexOf(state.low);
-    const end = allowedChars.indexOf(state.high);
-    if (start === -1 || end === -1 || start > end) {
-        alert("亂數範圍錯誤");
-        return "";
+function RandomNumberRepeat(){
+    let start = CharToInt(state.low);
+    let end = CharToInt(state.high);
+    let r = "";
+    for(let i = 0; i < state.digit; i++){
+        r += allowedChars[start + Math.floor(Math.random() * (end - start + 1))];
     }
-
-    let result = "";
-    for (let i = 0; i < state.digit; i++) {
-        const idx = start + Math.floor(Math.random() * (end - start + 1));
-        result += allowedChars[idx];
-    }
-
-    return result;
+    return r;
 }
 
-/* ========= 字元轉數字 ========= */
-function CharToInt(a){
-    return allowedChars.indexOf(a);
-}
+/* ========= 核心判斷 ========= */
+function CharToInt(c){ return allowedChars.indexOf(c); }
 
-/* ========= 出現幾次 ========= */
-function countChar(str, char) {
-    let count = 0;
-    for (let i = 0; i < str.length; i++) {
-        if (str[i] === char) count++;
-    }
-    return count;
-}
-
-function returnMin(a, b) {
-    return a < b ? a : b;
-}
-
-/* ========= 檢查 A ========= */
-function checkA(answer, guess) {
-    if (answer.length !== guess.length) {
-        alert("兩者長度不同");
-        return 0;
-    }
+function checkA(a, g){
     let A = 0;
-    for (let i = 0; i < answer.length; i++) {
-        if (answer[i] === guess[i]) A++;
+    for(let i = 0; i < a.length; i++){
+        if(a[i] === g[i]) A++;
     }
     return A;
 }
 
-/* ========= 檢查 B ========= */
-function checkB(answer, guess) {
-    if (answer.length !== guess.length) {
-        alert("兩者長度不同");
-        return 0;
-    }
-
-    let A = checkA(answer, guess);
+function checkB(a, g){
     let B = 0;
-
-    for (let i = CharToInt(state.low); i <= CharToInt(state.high); i++) {
-        B += returnMin(countChar(answer, allowedChars[i]), countChar(guess, allowedChars[i]));
+    for(let i = CharToInt(state.low); i <= CharToInt(state.high); i++){
+        let c = allowedChars[i];
+        B += Math.min(countChar(a, c), countChar(g, c));
     }
+    return B - checkA(a, g);
+}
 
-    B -= A;
-    return B;
-}  
+function countChar(s, c){
+    return [...s].filter(x => x === c).length;
+}
 </script>
 
 </body>
