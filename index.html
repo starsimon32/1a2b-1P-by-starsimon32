@@ -2,9 +2,38 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版第26號</title>
+<title>1A2B 改版第27號</title>
 <style>
-button { margin: 4px; }
+/* 整個畫面置中 */
+body {
+    margin: 0;
+    min-height: 100vh;          /* 高度 = 視窗高度 */
+    display: flex;
+    justify-content: center;    /* 水平置中 */
+    align-items: center;        /* 垂直置中 */
+    background-color: #f2f2f2;  /* 淡灰背景 */
+    font-family: Arial, sans-serif;
+}
+
+/* 遊戲主面板 */
+#app {
+    width: 420px;
+    background-color: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+button {
+    margin: 4px;
+    padding: 8px 14px;
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
 input { width: 80px; text-align: center; }
 .start-title {
     text-align: center;
@@ -169,13 +198,6 @@ function renderGamePage(){
             <button onclick="giveUp()">放棄</button>
             <button onclick="renderStartPage()">回開始</button>
         </div>
-/*      <button onclick="guess()">猜</button>
-        <button onclick="nextRound()">下一次</button>
-        <button onclick="giveHint()">提示</button>
-        <button onclick="giveHelp()">幫助</button>
-        <button onclick="showLeft()">顯示剩餘解數量</button>
-        <button onclick="giveUp()">放棄</button>
-        <button onclick="renderStartPage()">回開始</button>  */
         <p id="result"></p>
         <p id="hint"></p>
         <p id="help"></p>
