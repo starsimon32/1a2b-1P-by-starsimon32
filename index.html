@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 完整教學8 SPA</title>
+<title>1A2B 完整教學9 SPA</title>
 <style>
 button { margin: 2px; }
 input { width: 40px; text-align: center; }
@@ -64,7 +64,7 @@ function renderStartPage() {
         </label>
         <br><br>
 
-        <button onclick="startGame()">開始遊戲</button>
+        <button onclick="startGame()">測試員測試</button>
     `;
 
     // 允許直接手動輸入時檢查合法字元
@@ -121,11 +121,13 @@ function renderGamePage() {
         <p id="gameMessage"></p>
         <p id="testnumber"></p>
         <p id="givehint"></p>
+        <p id="givehelp"></p>
 
         <br>
         <button onclick="renderResultPage()">直接到結果畫面</button>
         <button onclick="renderStartPage()">回開始畫面</button>
         <button onclick="showhint()">提示</button>
+        <button onclick="showhelp()">幫助</button>
         
     `;
 
@@ -136,6 +138,9 @@ function renderGamePage() {
 /* ========= 提示 ========= */
 function showhint(){
     document.getElementById("givehint").innerText = `這裡之後會輸入提示`;
+}
+function showhelp(){
+    document.getElementById("givehelp").innerText = `這裡之後會輸入幫助`;
 }
 /* ========= 顯示允許重複狀態 ========= */
 function showRepeatStatus() {
