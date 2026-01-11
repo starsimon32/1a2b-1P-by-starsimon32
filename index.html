@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B SPA 完整可執行版17（修正版）</title>
+<title>1A2B SPA 完整可執行版19（修正版）</title>
 <style>
 button { margin: 4px; }
 input { width: 80px; text-align: center; }
@@ -30,6 +30,41 @@ const state = {
 const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 /* ========= 工具 ========= */
+function checkrepeat(s){
+    for(let i=0;i<s.length;i++){
+        for(let j=i+1;j<s.length;j++){
+            if(s[i]===s[j]){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+function charadd1(c){
+    let a=CharToInt(c);
+    if(a===CharToInt(state.high)){
+        a=CharToInt(state.low)
+    }
+    else{
+        a++;
+    }
+    return allowedChars[a];
+}
+function stringadd1(s){
+    let a=s;
+    a[a.length-1]=charadd1(a[a.length-1]);
+    for(let i=a.length-1;i>0;i--){
+        if(a[i]===state.low){
+        a[i-1]=charadd1(a[i-1]);
+        }
+        else{
+            break;
+        }
+        
+    }
+    return a;
+    
+}
 function CharToInt(c){ return allowedChars.indexOf(c); }
 
 function increment(id){
@@ -120,11 +155,15 @@ function renderGamePage(){
         <button onclick="guess()">猜</button>
         <button onclick="nextRound()">下一次</button>
         <button onclick="giveHint()">提示</button>
+        <button onclick="giveHelp()">幫助</button>
+        <button onclick="showLeft()">顯示剩餘解數量</button>
         <button onclick="giveUp()">放棄</button>
         <button onclick="renderStartPage()">回開始</button>
 
         <p id="result"></p>
         <p id="hint"></p>
+        <p id="help"></p>
+        <p id="left"></p>
     `;
     showHistory();
 }
@@ -165,6 +204,17 @@ function nextRound(){
 }
 
 /* ========= 提示 ========= */
+function correctguess(s){
+    for(let i = 0; i < state.history.length; i++){
+        let h = state.history[i];
+        if(checkA(h.guess,s) !== h.A ||
+           checkB(h.guess,s) !== h.B){
+            return i ;
+            break;
+        }
+    }
+    return -1;
+}
 function giveHint(){
     if(state.history.length === 0){
         alert("第一次沒有提示");
@@ -173,19 +223,79 @@ function giveHint(){
 
     let input = guessInput.value;
     if(!validGuess(input)) return;
-
-    let msg = "此猜測與所有歷史紀錄相容";
-
-    for(let i = 0; i < state.history.length; i++){
-        let h = state.history[i];
-        if(checkA(h.guess, input) !== h.A ||
-           checkB(h.guess, input) !== h.B){
-            msg = `與第 ${i + 1} 次猜測矛盾`;
-            break;
-        }
+    let a=correctguess(input);
+    let msg="";
+    if(a===-1){
+        let msg = "此猜測與所有歷史紀錄相容";
+    }
+    else{
+        msg = `與第 ${a} 次猜測矛盾`;
     }
     hint.innerText = msg;
 }
+function giveHelp(){
+    if(state.useRepeat===true){
+        let s=RandomNumberRepeat();      
+        while(true){
+            if(correctguess(s)===-1){
+                break;
+            }
+            s=stringadd1(s);
+        }
+    }
+    if(state.userepeat===false){
+        let s=RandomNumberNoRepeat();      
+        while(true){
+            if(checkrepeat(s)===false){
+                s=function stringadd1(s);
+                continue;
+            }
+            if(correctguess(s)===-1){
+                break;
+            }
+            s=function stringadd1(s);
+        }
+    }
+    msg=` ${s} 是一組解`;
+    help.innerText = msg;
+    
+}
+function showLeft(){
+    if(state.userepeat===true){
+        let s=RandomNumberRepeat();
+        let count=0;
+        let stop=s;
+        while(true){
+            if(correctguess(s)===-1){
+                count++;
+            }
+            s=function stringadd1(s);
+            if(stop===s){
+                break;
+            }
+        }
+    }
+    if(state.userepeat===false){
+        let s=RandomNumberNoRepeat();      
+        while(true){
+            if(checkrepeat(s)===false){
+                s=function stringadd1(s);
+                continue;
+            }
+            if(correctguess(s)===-1){
+                count++;
+            }
+            s=function stringadd1(s);
+            if(stop===s){
+                break;
+            }
+        }
+    }
+    msg=` 剩下${count} 組解`;
+    left.innerText = msg;
+    
+}
+
 
 /* ========= 結果頁 ========= */
 function victoryPage(){
@@ -214,6 +324,9 @@ function showHistory(){
     for(let i = 0; i < state.history.length; i++){
         let h = state.history[i];
         html += `第 ${i + 1} 次：${h.guess} → ${h.A}A${h.B}B<br>`;
+    }
+    if(state.guesscount===0){
+        html +=`暫無紀錄`;
     }
     historys.innerHTML = html;
 }
@@ -277,4 +390,4 @@ function RandomNumberRepeat(){
 </script>
 
 </body>
-</html>
+</html>修改
