@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B SPA 完整可執行版16</title>
+<title>1A2B SPA 完整可執行版17（修正版）</title>
 <style>
 button { margin: 4px; }
 input { width: 80px; text-align: center; }
@@ -112,6 +112,7 @@ function renderGamePage(){
     document.getElementById("app").innerHTML = `
         <h2>猜電腦數字</h2>
         <p id="historys"></p>
+
         <p>玩家：${state.playerName}</p>
         <p>第 ${state.guesscount + 1} 次猜測</p>
 
@@ -119,35 +120,13 @@ function renderGamePage(){
         <button onclick="guess()">猜</button>
         <button onclick="nextRound()">下一次</button>
         <button onclick="giveHint()">提示</button>
+        <button onclick="giveUp()">放棄</button>
         <button onclick="renderStartPage()">回開始</button>
 
         <p id="result"></p>
         <p id="hint"></p>
-        
     `;
     showHistory();
-}
-
-/* ========= 輸入檢查 ========= */
-function validGuess(input){
-    if(input.length !== state.digit){
-        alert("輸入長度錯誤");
-        return false;
-    }
-
-    for(let c of input){
-        let idx = CharToInt(c);
-        if(idx === -1 || idx < CharToInt(state.low) || idx > CharToInt(state.high)){
-            alert("含非法或超出範圍字元");
-            return false;
-        }
-    }
-
-    if(!state.useRepeat && new Set(input).size !== input.length){
-        alert("不允許重複");
-        return false;
-    }
-    return true;
 }
 
 /* ========= 猜 ========= */
@@ -168,6 +147,10 @@ function guess(){
 
     result.innerText = `${input} → ${A}A${B}B`;
     showHistory();
+
+    if(A === state.digit){
+        victoryPage();
+    }
 }
 
 /* ========= 下一回合 ========= */
@@ -191,7 +174,7 @@ function giveHint(){
     let input = guessInput.value;
     if(!validGuess(input)) return;
 
-    let msg = "這組猜測與目前所有紀錄相容";
+    let msg = "此猜測與所有歷史紀錄相容";
 
     for(let i = 0; i < state.history.length; i++){
         let h = state.history[i];
@@ -204,14 +187,55 @@ function giveHint(){
     hint.innerText = msg;
 }
 
+/* ========= 結果頁 ========= */
+function victoryPage(){
+    document.getElementById("app").innerHTML = `
+        <h2>🎉 恭喜猜中！</h2>
+        <p id="historys"></p>
+        <p>答案：${state.answer}</p>
+        <button onclick="renderStartPage()">回開始</button>
+    `;
+    showHistory();
+}
+
+function giveUp(){
+    document.getElementById("app").innerHTML = `
+        <h2>😢 放棄了</h2>
+        <p id="historys"></p>
+        <p>答案：${state.answer}</p>
+        <button onclick="renderStartPage()">回開始</button>
+    `;
+    showHistory();
+}
+
 /* ========= 歷史 ========= */
 function showHistory(){
-    let html = "歷史紀錄";
+    let html = "<b>歷史紀錄</b><br>";
     for(let i = 0; i < state.history.length; i++){
         let h = state.history[i];
-        html += `第${i + 1}次猜測是${h.guess} → ${h.A}A${h.B}B`;
+        html += `第 ${i + 1} 次：${h.guess} → ${h.A}A${h.B}B<br>`;
     }
-    historys.innerText = html;
+    historys.innerHTML = html;
+}
+
+/* ========= 驗證 ========= */
+function validGuess(input){
+    if(input.length !== state.digit){
+        alert("輸入長度錯誤");
+        return false;
+    }
+    for(let c of input){
+        let idx = CharToInt(c);
+        if(idx === -1 || idx < CharToInt(state.low) || idx > CharToInt(state.high)){
+            alert("含非法或超出範圍字元");
+            return false;
+        }
+    }
+    if(!state.useRepeat && new Set(input).size !== input.length){
+        alert("不允許重複");
+        return false;
+    }
+    return true;
 }
 
 /* ========= 核心判斷 ========= */
@@ -221,7 +245,6 @@ function checkA(a, g){
         if(a[i] === g[i]) A++;
     return A;
 }
-
 function checkB(a, g){
     let B = 0;
     for(let i = CharToInt(state.low); i <= CharToInt(state.high); i++){
@@ -230,7 +253,6 @@ function checkB(a, g){
     }
     return B - checkA(a, g);
 }
-
 function countChar(s, c){
     return [...s].filter(x => x === c).length;
 }
@@ -241,11 +263,10 @@ function RandomNumberNoRepeat(){
     let r = "";
     for(let i = 0; i < state.digit; i++){
         let idx = Math.floor(Math.random() * pool.length);
-        r += pool.splice(idx, 1);
+        r += pool.splice(idx, 1)[0];
     }
     return r;
 }
-
 function RandomNumberRepeat(){
     let r = "";
     let s = CharToInt(state.low), e = CharToInt(state.high);
