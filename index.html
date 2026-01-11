@@ -129,7 +129,7 @@ function renderGamePage() {
 function fakeCheck() {
     state.fakeInput = document.getElementById("gameInput").value;
     document.getElementById("gameMessage").innerText =
-        "你剛剛輸入了：" + state.fakeInput;
+        "你剛剛輸入了：" + state.fakeInput+"是"+checkA("1234",state.fakeInput)+"A";
 }
 
 /* ========= 畫面 3 ========= */
@@ -178,6 +178,24 @@ function setupCharInput(inputId) {
         el.value = val;
     });
 }
+//檢查A
+function checkA(answer, guess) {
+    if (answer.length !== guess.length) {
+        alert("兩者長度不同");
+        return;
+    }
+
+    let A = 0;
+
+    for (let i = 0; i < answer.length; i++) {
+        if (answer[i] === guess[i]) {
+            A++;
+        }
+    }
+
+    return A;
+}
+
 </script>
 
 </body>
