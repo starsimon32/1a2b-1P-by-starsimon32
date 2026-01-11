@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 完整教學4 SPA</title>
+<title>1A2B 完整教學5 SPA</title>
 <style>
 button { margin: 2px; }
 input { width: 40px; text-align: center; }
@@ -19,7 +19,7 @@ const state = {
     playerName: "",
     digit: 4,
     fakeInput: "",
-    userepeat: true,
+    useRepeat: true,   // 修正大小寫
     low: "0",
     high: "9"
 };
@@ -47,8 +47,6 @@ function renderStartPage() {
             <input type="checkbox" id="useRepeat" ${state.useRepeat ? "checked" : ""}>
         </label>
         <br><br>
-
-        <label>
 
         <label>
             最低位：
@@ -79,7 +77,7 @@ function startGame() {
     // 讀取資料
     state.playerName = document.getElementById("nameInput").value;
     state.digit = Number(document.getElementById("digitInput").value);
-    state.useHint = document.getElementById("useHint").checked;
+    state.useRepeat = document.getElementById("useRepeat").checked; // 修正 id 與 state 名稱
 
     // 先讀上下限
     let low = document.getElementById("lowInput").value.toLowerCase();
@@ -87,7 +85,7 @@ function startGame() {
 
     // 檢查是否在 allowedChars
     if (!allowedChars.includes(low) || !allowedChars.includes(high)) {
-        alert("上下限只能輸入 0~f 的字元！");
+        alert("上下限只能輸入 0~z 的字元！");
         return;
     }
 
@@ -117,7 +115,7 @@ function renderGamePage() {
         <button onclick="fakeCheck()">送出</button>
 
         <p id="gameMessage"></p>
-        <p id="testmunber"></p>
+        <p id="testnumber"></p>
 
         <br>
         <button onclick="renderResultPage()">直接到結果畫面</button>
@@ -127,13 +125,21 @@ function renderGamePage() {
     showRepeatStatus();
     showTestNumber();
 }
+
+/* ========= 顯示允許重複狀態 ========= */
+function showRepeatStatus() {
+    const el = document.getElementById("RepeatStatus"); // 修正 id
+    el.innerText = state.useRepeat ? "已允許" : "不允許";
+}
+
+/* ========= 顯示測試亂數 ========= */
 function showTestNumber() {
     let a = RandomNumberNoRepeat(state.digit, state.high, state.low);
     let b = RandomNumberRepeat(state.digit, state.high, state.low);
     document.getElementById("testnumber").innerText = `不重複：${a}，重複：${b}`;
 }
 
-
+/* ========= 模擬檢查輸入 ========= */
 function fakeCheck() {
     state.fakeInput = document.getElementById("gameInput").value;
     document.getElementById("gameMessage").innerText =
@@ -148,17 +154,11 @@ function renderResultPage() {
         <p>玩家：${state.playerName}</p>
         <p>遊戲位數：${state.digit}</p>
         <p>最後一次輸入：${state.fakeInput}</p>
-        <p>提示是否開啟：${state.useRepeat ? "是" : "否"}</p>
+        <p>允許重複：${state.useRepeat ? "是" : "否"}</p>
         <p>範圍：${state.low} ~ ${state.high}</p>
 
         <button onclick="renderStartPage()">重新開始</button>
     `;
-}
-
-/* ========= 顯示提示開關 ========= */
-function showRepeatStatus() {
-    const el = document.getElementById("Repeatstatus");
-    el.innerText = state.useRepeat ? "已允許" : "不允許";
 }
 
 /* ========= 上下限按鈕 ========= */
@@ -186,6 +186,8 @@ function setupCharInput(inputId) {
         el.value = val;
     });
 }
+
+/* ========= 亂數產生函式 ========= */
 function RandomNumberNoRepeat(digit, max, min) {
     const start = allowedChars.indexOf(min);
     const end = allowedChars.indexOf(max);
@@ -211,6 +213,7 @@ function RandomNumberNoRepeat(digit, max, min) {
 
     return result;
 }
+
 function RandomNumberRepeat(digit, max, min) {
     const start = allowedChars.indexOf(min);
     const end = allowedChars.indexOf(max);
@@ -227,14 +230,15 @@ function RandomNumberRepeat(digit, max, min) {
         result += allowedChars[idx];
     }
 
-    return result; // 字串
+    return result;
 }
 
-//字元變成數字
+/* ========= 字元變成數字 ========= */
 function CharToInt(a){
     return allowedChars.indexOf(a);
 }
-//檢查A
+
+/* ========= 檢查 A ========= */
 function checkA(answer, guess) {
     if (answer.length !== guess.length) {
         alert("兩者長度不同");
