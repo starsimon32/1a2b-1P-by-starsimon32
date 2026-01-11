@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 完整教學2 SPA</title>
+<title>1A2B 完整教學3 SPA</title>
 <style>
 button { margin: 2px; }
 input { width: 40px; text-align: center; }
@@ -117,6 +117,7 @@ function renderGamePage() {
         <button onclick="fakeCheck()">送出</button>
 
         <p id="gameMessage"></p>
+      //  <p>字母a呈現出${CharToInt("a")}而數字5呈現${CharToInt("5")}</p>
 
         <br>
         <button onclick="renderResultPage()">直接到結果畫面</button>
@@ -129,7 +130,7 @@ function renderGamePage() {
 function fakeCheck() {
     state.fakeInput = document.getElementById("gameInput").value;
     document.getElementById("gameMessage").innerText =
-        "你剛剛輸入了：" + state.fakeInput+"是"+checkA("1234",state.fakeInput)+"A";
+        "你剛剛輸入了：" + state.fakeInput+"是"+checkA("1234",state.fakeInput)+"A"+"字母a呈現出 ${CharToInt("a")} 而數字5呈現 ${CharToInt("5")}";
 }
 
 /* ========= 畫面 3 ========= */
@@ -177,6 +178,10 @@ function setupCharInput(inputId) {
         if (!allowedChars.includes(val)) val = ""; // 非法清空
         el.value = val;
     });
+}
+//字元變成數字
+function CharToInt(a){
+    return Number(a);
 }
 //檢查A
 function checkA(answer, guess) {
