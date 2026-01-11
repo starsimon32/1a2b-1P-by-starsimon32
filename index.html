@@ -2,11 +2,13 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版35</title>
+<title>1A2B 改版36</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
-
+#result { color: #16a34a; font-weight: bold; }
+#hint   { color: #2563eb; }
+#help   { color: #9333ea; }
 /* 整個畫面置中 */
 body {
     margin: 0;
@@ -93,7 +95,7 @@ function renderStartPage(){
         最高位 <input id="highInput" value="${state.high}" maxlength="1"><br><br>
         允許重複 <input type="checkbox" id="useRepeat" ${state.useRepeat?"checked":""}><br><br>
         <button onclick="startGame()">電腦出題</button>
-        <button onclick="startGame2()">我來出題(暫不可用)</button>
+        <button onclick="startGame2()">我來出題</button>
         <button onclick="describe()">規則說明</button>
     `;
 }
