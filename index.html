@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版31</title>
+<title>1A2B 改版32</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -119,19 +119,18 @@ function startGame2(){
         <h2 class="start-title">輸入答案</h2>
         我的答案 <input id="answerInput" value="${state.answer}"><br><br>
         <button onclick="renderStartPage()">回首頁</button>
-        <button onclick="startGame()">出發</button>
+        <button onclick="TostartGame()">出發</button>
     `;
 }
-
+function TostartGame(){
+    let input=document.getElementById("answerInput").value;
+    if(!validGuess(input)){ alert("請輸入正確答案格式"); return; }
+    state.answer=input;
+    startGame();
+}
 /* ========= 開始遊戲 ========= */
 function startGame(){
     const app=document.getElementById("app");
-
-    if(state.answerbyuser){
-        let input=document.getElementById("answerInput").value;
-        if(!validGuess(input)){ alert("請輸入正確答案格式"); return; }
-        state.answer=input;
-    }
 
     state.playerName=document.getElementById("nameInput").value;
     state.digit=Number(document.getElementById("digitInput").value);
