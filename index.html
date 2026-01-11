@@ -25,7 +25,7 @@ const state = {
 };
 
 /* ========= 可用字元集合 ========= */
-const allowedChars = "0123456789abcdef";
+const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 /* ========= 畫面 1 ========= */
 function renderStartPage() {
@@ -47,6 +47,8 @@ function renderStartPage() {
             <input type="checkbox" id="useHint" ${state.useHint ? "checked" : ""}>
         </label>
         <br><br>
+
+        <label>
 
         <label>
             最低位：
