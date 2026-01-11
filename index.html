@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B SPA 完整可執行版14</title>
+<title>1A2B SPA 完整可執行版15</title>
 <style>
 button { margin: 4px; }
 input { width: 80px; text-align: center; }
@@ -111,7 +111,7 @@ function startGame(){
 function renderGamePage(){
     document.getElementById("app").innerHTML = `
         <h2>猜電腦數字</h2>
-        <div id="history"></div>
+        <p id="historys"></p>
         <p>玩家：${state.playerName}</p>
         <p>第 ${state.guesscount + 1} 次猜測</p>
 
@@ -211,7 +211,7 @@ function showHistory(){
         let h = state.history[i];
         html += `<p>${i + 1}. ${h.guess} → ${h.A}A${h.B}B</p>`;
     }
-    history.innerHTML = html;
+    historys.innerText = html;
 }
 
 /* ========= 核心判斷 ========= */
