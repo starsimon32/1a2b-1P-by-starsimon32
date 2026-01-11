@@ -2,10 +2,32 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B SPA 完整可執行版24（修正版）</title>
+<title>1A2B 改版第25號</title>
 <style>
 button { margin: 4px; }
 input { width: 80px; text-align: center; }
+.start-title {
+    text-align: center;
+    font-size: 32px;
+    color: #2c3e50;
+}
+
+.game-title {
+    text-align: center;
+    font-size: 34px;
+    color: #3498db;
+}
+
+.win-title {
+    text-align: center;
+    font-size: 36px;
+    color: #27ae60;
+}
+
+.lose-title {
+    text-align: center;
+    font-size: 32px;
+    color: #7f8c8d;
 </style>
 </head>
 
@@ -59,7 +81,7 @@ function stringadd1(s){
 /* ========= 開始畫面 ========= */
 function renderStartPage(){
     app.innerHTML=`
-        <h2>歡迎來到1a2b</h2>
+        <h2 class="start-title">歡迎來到1a2b</h2>
         說明：本1a2b有三種功能<br>
         提示：告訴使用者自己輸入的是否和前面產生矛盾<br>
         幫助：幫使用者想一個和前面不矛盾得數<br>
@@ -69,7 +91,7 @@ function renderStartPage(){
         最低位(請輸入0到z，都用小寫，z代表36) <input id="lowInput" value="${state.low}" maxlength="1"><br><br>
         最高位(請輸入0到z，都用小寫，z代表36) <input id="highInput" value="${state.high}" maxlength="1"><br><br>
         允許重複 <input type="checkbox" id="useRepeat" ${state.useRepeat?"checked":""}><br><br>
-        <button onclick="startGame()">開始猜電腦的數字</button>
+        <button onclick="startGame()">開始猜電腦生成的數字</button>
     `;
 }
 
