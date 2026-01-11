@@ -111,6 +111,7 @@ function startGame(){
 function renderGamePage(){
     document.getElementById("app").innerHTML = `
         <h2>猜電腦數字</h2>
+        <div id="history"></div>
         <p>玩家：${state.playerName}</p>
         <p>第 ${state.guesscount + 1} 次猜測</p>
 
@@ -122,7 +123,7 @@ function renderGamePage(){
 
         <p id="result"></p>
         <p id="hint"></p>
-        <div id="history"></div>
+        
     `;
     showHistory();
 }
