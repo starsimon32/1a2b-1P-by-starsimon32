@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B SPA 完整可執行版22（修正版）</title>
+<title>1A2B SPA 完整可執行版23（修正版）</title>
 <style>
 button { margin: 4px; }
 input { width: 80px; text-align: center; }
@@ -17,7 +17,7 @@ input { width: 80px; text-align: center; }
 const state = {
     playerName: "",
     digit: 4,
-    useRepeat: true,
+    useRepeat: false,
     low: "0",
     high: "9",
     answer: "",
@@ -60,7 +60,7 @@ function stringadd1(s){
 function renderStartPage(){
     app.innerHTML=`
         <h2>歡迎來到1a2b</h2>
-        說明：
+        說明：<br>
         玩家名稱 <input id="nameInput" value="${state.playerName}"><br><br>
         位數 <input id="digitInput" type="number" value="${state.digit}"><br><br>
         允許重複 <input type="checkbox" id="useRepeat" ${state.useRepeat?"checked":""}><br><br>
