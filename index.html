@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版第28號</title>
+<title>1A2B 改版第29號</title>
 <style>
 #left   { color: #dc2626; }
 /* 整個畫面置中 */
@@ -95,6 +95,7 @@ const state = {
     answer: "",
     guesscount: 0,
     haveGuessed: false,
+    answerbyuser:false,
     history: []
 };
 
@@ -132,21 +133,42 @@ function stringadd1(s){
 function renderStartPage(){
     app.innerHTML=`
         <h2 class="start-title">歡迎來到1a2b</h2>
-        說明：本1a2b有三種功能<br>
-        提示：告訴使用者自己輸入的是否和前面產生矛盾<br>
-        幫助：幫使用者想一個和前面不矛盾得數<br>
-        顯示剩餘解：告訴使用者還剩下幾種可能<br>
         玩家名稱 <input id="nameInput" value="${state.playerName}"><br><br>
         位數 <input id="digitInput" type="number" value="${state.digit}"><br><br>
         最低位(請輸入0到z，都用小寫，z代表36) <input id="lowInput" value="${state.low}" maxlength="1"><br><br>
         最高位(請輸入0到z，都用小寫，z代表36) <input id="highInput" value="${state.high}" maxlength="1"><br><br>
         允許重複 <input type="checkbox" id="useRepeat" ${state.useRepeat?"checked":""}><br><br>
-        <button onclick="startGame()">開始猜電腦生成的數字</button>
+        <button onclick="startGame()">電腦出題</button>
+        <button onclick="startGame2()">我來出題(目前還不能用)</button>
+        <button onclick="describe()">規則說明</button>
     `;
 }
 
 /* ========= 讀取設定 ========= */
+function describe(){
+    app.innerHTML=`
+        <h2 class="start-title">規則說明</h2>
+        遊戲規則：答案的樣貌由使用者設定，包含重複或是不重複、位數以及幾進位(本遊戲支持36進為，a=10、b=11以此類推到z)<br>
+        提示按鈕：輸入自己的答案後，告訴使用者自己輸入的是否和前面產生矛盾<br>
+        幫助按鈕：幫使用者想一個和前面不矛盾得數<br>
+        顯示剩餘解按鈕：告訴使用者還剩下幾種可能<br>
+        <button onclick="renderStartPage()">回開始</button>
+    `;
+}
+function startGame2(){
+    state.answerbyuser=true;
+    app.innerHTML=`
+        <h2 class="start-title">輸入答案</h2>
+        我的答案 <input id="answerInput" value="${state.answer}"><br><br>
+        <button onclick="renderStartPage()">回首頁</button>
+        <button onclick="startGame()">出發</button>
+    `;
+}
+
 function startGame(){
+    if(!validGuess(input) && state.answerbyuser===true){
+        alert("請輸入正確答案格式"); return;
+    }
     state.playerName=nameInput.value;
     state.digit=Number(digitInput.value);
     state.useRepeat=useRepeat.checked;
@@ -166,8 +188,13 @@ function startGame(){
        CharToInt(state.high)-CharToInt(state.low)+1<state.digit){
         alert("字元數不足，必定重複"); return;
     }
+    if(state.answerbyuser===false){
+        state.answer=state.useRepeat?RandomNumberRepeat():RandomNumberNoRepeat();
+    }
 
-    state.answer=state.useRepeat?RandomNumberRepeat():RandomNumberNoRepeat();
+
+
+    
     state.history=[];
     state.guesscount=0;
     state.haveGuessed=false;
@@ -178,8 +205,8 @@ function startGame(){
 function renderGamePage(){
     app.innerHTML=`
         <h2 class="game-title">猜電腦數字</h2>
-        <p id="historys"></p>
         <p>玩家：${state.playerName}</p>
+        <p id="historys"></p>
         <p>第 ${state.guesscount+1} 次猜測</p>
         <input id="guessInput">
         <div class="btn-group main-btn">
