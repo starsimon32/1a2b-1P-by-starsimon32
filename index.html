@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 完整教學10 SPA</title>
+<title>1A2B 完整教學11 SPA 修正版</title>
 <style>
 button { margin: 2px; }
 input { width: 40px; text-align: center; }
@@ -22,7 +22,10 @@ const state = {
     useRepeat: true,
     low: "0",
     high: "9",
-    answer:""
+    answer:"",
+    guesscount:0,
+    haveGuessed:false,
+    guess:""
 };
 
 /* ========= 可用字元集合 ========= */
@@ -71,6 +74,9 @@ function renderStartPage() {
 
     setupCharInput('lowInput');
     setupCharInput('highInput');
+
+    state.guesscount = 0;
+    state.haveGuessed = false;
 }
 
 /* ========= 讀取設定共用函式 ========= */
@@ -120,8 +126,31 @@ function computerIsanswer_pic2(){
         <h2>電腦題目畫面</h2>
         <p>玩家：${state.playerName}</p>
         <p>電腦答案是：${state.answer}，此畫面之後會有遊玩</p>
+        <input id="computerIsinput_guess" value="${state.guess}">
+        <p id="computerIsinput_AB"></p>
+        <button onclick="f_guess()">猜</button>
+        <button onclick="f_guessnext()">猜下一組數字</button>
         <button onclick="renderStartPage()">回開始畫面</button>
     `;
+}
+
+/* ========= 猜下一組 ========= */
+function f_guessnext(){
+    state.haveGuessed = false;
+    state.guesscount++;
+    computerIsanswer_pic2();
+}
+
+/* ========= 猜數字 ========= */
+function f_guess(){
+    if(state.haveGuessed){
+        alert("你已經猜過了~");
+        return;
+    }
+    state.haveGuessed = true;
+    state.guess = document.getElementById("computerIsinput_guess").value;
+    document.getElementById("computerIsinput_AB").innerText =
+        `你剛剛輸入了：${state.guess} 是 ${checkA(state.answer, state.guess)}A${checkB(state.answer, state.guess)}B`;
 }
 
 /* ========= 畫面 2 ========= */
@@ -287,7 +316,7 @@ function returnMin(a, b) {
 function checkA(answer, guess) {
     if (answer.length !== guess.length) {
         alert("兩者長度不同");
-        return;
+        return 0;
     }
     let A = 0;
     for (let i = 0; i < answer.length; i++) {
@@ -300,7 +329,7 @@ function checkA(answer, guess) {
 function checkB(answer, guess) {
     if (answer.length !== guess.length) {
         alert("兩者長度不同");
-        return;
+        return 0;
     }
 
     let A = checkA(answer, guess);
