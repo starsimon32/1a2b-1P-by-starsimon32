@@ -2,28 +2,30 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版30號</title>
+<title>1A2B 改版31</title>
 <style>
+/* 文字顏色 */
+#left { color: #dc2626; }
+
 /* 整個畫面置中 */
 body {
     margin: 0;
-    min-height: 100vh;         
+    min-height: 100vh;
     display: flex;
-    justify-content: center;   
-    align-items: center;       
-    background-color: #f2f2f2;  
+    justify-content: center;
+    align-items: center;
+    background-color: #f2f2f2;
     font-family: Arial, sans-serif;
 }
 
 /* 遊戲主面板 */
 #app {
-    width: 420px; 
+    width: 420px;
     background-color: white;
     padding: 24px;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
-
 input { width: 80px; text-align: center; }
 
 .start-title { text-align: center; font-size: 32px; color: #2c3e50; }
@@ -36,6 +38,7 @@ button {
     padding: 8px 14px;
     font-size: 16px;
     transition: 0.2s;
+    cursor: pointer;
 }
 button:hover { transform: scale(1.05); }
 
@@ -46,19 +49,16 @@ button:hover { transform: scale(1.05); }
     flex-wrap: wrap;
     margin-top: 10px;
 }
-
 .main-btn button { background-color: #3498db; color: white; }
 .helper-btn button { background-color: #95a5a6; color: white; }
 .danger-btn button { background-color: #e74c3c; color: white; }
-
-#left { color: #dc2626; }
 </style>
 </head>
-
 <body onload="renderStartPage()">
 <div id="app"></div>
 
 <script>
+/* ========= 全域狀態 ========= */
 const state = {
     playerName: "",
     digit: 4,
@@ -74,41 +74,23 @@ const state = {
 
 const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
 
+/* ========= 工具 ========= */
 function CharToInt(c){ return allowedChars.indexOf(c); }
-
-function checkrepeat(s){
-    for(let i=0;i<s.length;i++)
-        for(let j=i+1;j<s.length;j++)
-            if(s[i]===s[j]) return false;
-    return true;
-}
-
-function charadd1(c){
-    let a=CharToInt(c);
-    if(a===CharToInt(state.high)) a=CharToInt(state.low);
-    else a++;
-    return allowedChars[a];
-}
-
-function stringadd1(s){
-    let a=s.split("");
-    a[a.length-1]=charadd1(a[a.length-1]);
-    for(let i=a.length-1;i>0;i--){
-        if(a[i]===state.low)
-            a[i-1]=charadd1(a[i-1]);
-        else break;
-    }
-    return a.join("");
-}
+function checkrepeat(s){ for(let i=0;i<s.length;i++) for(let j=i+1;j<s.length;j++) if(s[i]===s[j]) return false; return true; }
+function charadd1(c){ let a=CharToInt(c); if(a===CharToInt(state.high)) a=CharToInt(state.low); else a++; return allowedChars[a]; }
+function stringadd1(s){ let a=s.split(""); a[a.length-1]=charadd1(a[a.length-1]); for(let i=a.length-1;i>0;i--){ if(a[i]===state.low) a[i-1]=charadd1(a[i-1]); else break; } return a.join(""); }
+function countChar(s,c){ return [...s].filter(x=>x===c).length; }
 
 /* ========= 開始畫面 ========= */
 function renderStartPage(){
-    document.getElementById("app").innerHTML=`
+    state.answerbyuser=false;
+    const app=document.getElementById("app");
+    app.innerHTML=`
         <h2 class="start-title">歡迎來到1A2B</h2>
         玩家名稱 <input id="nameInput" value="${state.playerName}"><br><br>
         位數 <input id="digitInput" type="number" value="${state.digit}"><br><br>
-        最低位(0~z) <input id="lowInput" value="${state.low}" maxlength="1"><br><br>
-        最高位(0~z) <input id="highInput" value="${state.high}" maxlength="1"><br><br>
+        最低位 <input id="lowInput" value="${state.low}" maxlength="1"><br><br>
+        最高位 <input id="highInput" value="${state.high}" maxlength="1"><br><br>
         允許重複 <input type="checkbox" id="useRepeat" ${state.useRepeat?"checked":""}><br><br>
         <button onclick="startGame()">電腦出題</button>
         <button onclick="startGame2()">我來出題(暫不可用)</button>
@@ -118,19 +100,22 @@ function renderStartPage(){
 
 /* ========= 說明 ========= */
 function describe(){
-    document.getElementById("app").innerHTML=`
+    const app=document.getElementById("app");
+    app.innerHTML=`
         <h2 class="start-title">規則說明</h2>
-        遊戲規則：答案的樣貌由使用者設定，包含重複或不重複、位數以及幾進位(支持36進制，a=10...z=35)<br>
-        提示按鈕：輸入自己的答案後，告訴使用者是否與歷史矛盾<br>
-        幫助按鈕：給使用者一組與歷史不矛盾的數字<br>
-        顯示剩餘解按鈕：告訴使用者還剩幾組可能<br>
+        遊戲規則：答案由玩家設定，包含重複或不重複、位數及幾進位(本遊戲支援36進位 a=10 ... z)<br>
+        提示按鈕：輸入自己的答案後，告訴使用者是否與歷史紀錄矛盾<br>
+        幫助按鈕：提供一組與歷史紀錄不矛盾的答案<br>
+        顯示剩餘解按鈕：計算剩餘可能組合<br>
         <button onclick="renderStartPage()">回開始</button>
     `;
 }
 
+/* ========= 使用者出題 ========= */
 function startGame2(){
     state.answerbyuser=true;
-    document.getElementById("app").innerHTML=`
+    const app=document.getElementById("app");
+    app.innerHTML=`
         <h2 class="start-title">輸入答案</h2>
         我的答案 <input id="answerInput" value="${state.answer}"><br><br>
         <button onclick="renderStartPage()">回首頁</button>
@@ -138,13 +123,13 @@ function startGame2(){
     `;
 }
 
-/* ========= 讀取設定 & 開始遊戲 ========= */
+/* ========= 開始遊戲 ========= */
 function startGame(){
-    if(state.answerbyuser===true){
-        let input = document.getElementById("answerInput").value;
-        if(!validGuess(input)){
-            alert("請輸入正確答案格式"); return;
-        }
+    const app=document.getElementById("app");
+
+    if(state.answerbyuser){
+        let input=document.getElementById("answerInput").value;
+        if(!validGuess(input)){ alert("請輸入正確答案格式"); return; }
         state.answer=input;
     }
 
@@ -155,30 +140,25 @@ function startGame(){
     state.high=document.getElementById("highInput").value;
 
     if(state.playerName.length===0){ alert("請輸入玩家名稱"); return; }
-    if(CharToInt(state.low)===-1 || CharToInt(state.high)===-1){ alert("最低或最高位不合法"); return; }
+    if(CharToInt(state.low)===-1||CharToInt(state.high)===-1){ alert("最低或最高位不合法"); return; }
     if(CharToInt(state.high)<CharToInt(state.low)){ alert("最高位不能小於最低位"); return; }
-    if(!state.useRepeat && CharToInt(state.high)-CharToInt(state.low)+1<state.digit){
-        alert("字元數不足，必定重複"); return;
-    }
+    if(!state.useRepeat && CharToInt(state.high)-CharToInt(state.low)+1<state.digit){ alert("字元數不足，必定重複"); return; }
+    if(!state.answerbyuser){ state.answer=state.useRepeat?RandomNumberRepeat():RandomNumberNoRepeat(); }
 
-    if(state.answerbyuser===false){
-        state.answer=state.useRepeat?RandomNumberRepeat():RandomNumberNoRepeat();
-    }
-
-    state.history=[];
-    state.guesscount=0;
-    state.haveGuessed=false;
+    state.history=[]; state.guesscount=0; state.haveGuessed=false;
     renderGamePage();
 }
 
 /* ========= 遊戲畫面 ========= */
 function renderGamePage(){
-    document.getElementById("app").innerHTML=`
+    const app=document.getElementById("app");
+    app.innerHTML=`
         <h2 class="game-title">猜電腦數字</h2>
         <p>玩家：${state.playerName}</p>
         <p id="historys"></p>
         <p>第 ${state.guesscount+1} 次猜測</p>
         <input id="guessInput">
+
         <div class="btn-group main-btn">
             <button onclick="guess()">猜</button>
             <button onclick="nextRound()">下一次</button>
@@ -186,12 +166,13 @@ function renderGamePage(){
         <div class="btn-group helper-btn">
             <button onclick="giveHint()">提示</button>
             <button onclick="giveHelp()">幫助</button>
-            <button onclick="showLeft()">剩餘解數量</button>
+            <button onclick="showLeft()">顯示剩餘解數量</button>
         </div>
         <div class="btn-group danger-btn">
             <button onclick="giveUp()">放棄</button>
             <button onclick="renderStartPage()">回開始</button>
         </div>
+
         <p id="result"></p>
         <p id="hint"></p>
         <p id="help"></p>
@@ -200,10 +181,10 @@ function renderGamePage(){
     showHistory();
 }
 
-/* ========= 核心功能 ========= */
+/* ========= 猜 ========= */
 function guess(){
-    if(state.haveGuessed){ alert("本回合已猜"); return; }
     let input=document.getElementById("guessInput").value;
+    if(state.haveGuessed){ alert("本回合已猜"); return; }
     if(!validGuess(input)) return;
 
     let A=checkA(state.answer,input);
@@ -213,14 +194,11 @@ function guess(){
 
     document.getElementById("result").innerText=`${input} → ${A}A${B}B`;
     showHistory();
-
     if(A===state.digit) victoryPage();
 }
-
 function nextRound(){
     if(!state.haveGuessed){ alert("請先猜一次"); return; }
-    state.guesscount++;
-    state.haveGuessed=false;
+    state.guesscount++; state.haveGuessed=false;
     renderGamePage();
 }
 
@@ -232,7 +210,6 @@ function correctguess(s){
     }
     return -1;
 }
-
 function giveHint(){
     if(state.history.length===0){ alert("第一次沒有提示"); return; }
     let input=document.getElementById("guessInput").value;
@@ -248,7 +225,7 @@ function giveHelp(){
     if(state.useRepeat){
         s=RandomNumberRepeat();
         while(correctguess(s)!==-1) s=stringadd1(s);
-    }else{
+    } else {
         s=RandomNumberNoRepeat();
         while(true){
             if(!checkrepeat(s)){ s=stringadd1(s); continue; }
@@ -264,23 +241,18 @@ function showLeft(){
     let count=0,s,stop;
     if(state.useRepeat){
         s=RandomNumberRepeat(); stop=s;
-        do{
-            if(correctguess(s)===-1) count++;
-            s=stringadd1(s);
-        }while(s!==stop);
-    }else{
+        do{ if(correctguess(s)===-1) count++; s=stringadd1(s); }while(s!==stop);
+    } else {
         s=RandomNumberNoRepeat(); stop=s;
-        do{
-            if(checkrepeat(s)&&correctguess(s)===-1) count++;
-            s=stringadd1(s);
-        }while(s!==stop);
+        do{ if(checkrepeat(s)&&correctguess(s)===-1) count++; s=stringadd1(s); }while(s!==stop);
     }
     document.getElementById("left").innerText=`剩下 ${count} 組解`;
 }
 
 /* ========= 結果 ========= */
 function victoryPage(){
-    document.getElementById("app").innerHTML=`
+    const app=document.getElementById("app");
+    app.innerHTML=`
         <h2 class="win-title">🎉 恭喜猜中！</h2>
         <p id="historys"></p>
         <p>答案：${state.answer}</p>
@@ -288,9 +260,9 @@ function victoryPage(){
     `;
     showHistory();
 }
-
 function giveUp(){
-    document.getElementById("app").innerHTML=`
+    const app=document.getElementById("app");
+    app.innerHTML=`
         <h2 class="lose-title">😢 放棄了</h2>
         <p id="historys"></p>
         <p>答案：${state.answer}</p>
@@ -318,47 +290,18 @@ function validGuess(input){
             alert("含非法或超出範圍字元"); return false;
         }
     }
-    if(!state.useRepeat && new Set(input).size!==input.length){
-        alert("不允許重複"); return false;
-    }
+    if(!state.useRepeat && new Set(input).size!==input.length){ alert("不允許重複"); return false; }
     return true;
 }
 
 /* ========= 判斷 ========= */
-function checkA(a,g){
-    let A=0;
-    for(let i=0;i<a.length;i++) if(a[i]===g[i]) A++;
-    return A;
-}
-
-function checkB(a,g){
-    let B=0;
-    for(let i=CharToInt(state.low);i<=CharToInt(state.high);i++){
-        let c=allowedChars[i];
-        B+=Math.min(countChar(a,c),countChar(g,c));
-    }
-    return B-checkA(a,g);
-}
-
-function countChar(s,c){ return [...s].filter(x=>x===c).length; }
+function checkA(a,g){ let A=0; for(let i=0;i<a.length;i++) if(a[i]===g[i]) A++; return A; }
+function checkB(a,g){ let B=0; for(let i=CharToInt(state.low);i<=CharToInt(state.high);i++){ let c=allowedChars[i]; B+=Math.min(countChar(a,c),countChar(g,c)); } return B-checkA(a,g); }
 
 /* ========= 亂數 ========= */
-function RandomNumberRepeat(){
-    let r="",s=CharToInt(state.low),e=CharToInt(state.high);
-    for(let i=0;i<state.digit;i++)
-        r+=allowedChars[s+Math.floor(Math.random()*(e-s+1))];
-    return r;
-}
+function RandomNumberRepeat(){ let r="",s=CharToInt(state.low),e=CharToInt(state.high); for(let i=0;i<state.digit;i++) r+=allowedChars[s+Math.floor(Math.random()*(e-s+1))]; return r; }
+function RandomNumberNoRepeat(){ let pool=allowedChars.slice(CharToInt(state.low),CharToInt(state.high)+1).split(""); let r=""; for(let i=0;i<state.digit;i++){ let idx=Math.floor(Math.random()*pool.length); r+=pool.splice(idx,1)[0]; } return r; }
 
-function RandomNumberNoRepeat(){
-    let pool=allowedChars.slice(CharToInt(state.low),CharToInt(state.high)+1).split("");
-    let r="";
-    for(let i=0;i<state.digit;i++){
-        let idx=Math.floor(Math.random()*pool.length);
-        r+=pool.splice(idx,1)[0];
-    }
-    return r;
-}
 </script>
 </body>
 </html>
