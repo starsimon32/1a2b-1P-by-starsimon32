@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 完整教學6 SPA</title>
+<title>1A2B 完整教學7 SPA</title>
 <style>
 button { margin: 2px; }
 input { width: 40px; text-align: center; }
@@ -94,7 +94,11 @@ function startGame() {
         alert("最高位不能小於最低位，請重新輸入！");
         return;
     }
-
+    // 檢查可否重複
+    if(state.useRepeat===true && (CharToInt(high)-CharToInt(low))<state.digit){
+        alert("這樣設定一定會重複唷");
+        return;
+    }
     state.low = low;
     state.high = high;
 
