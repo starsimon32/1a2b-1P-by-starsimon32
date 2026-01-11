@@ -117,7 +117,7 @@ function renderGamePage() {
         <button onclick="fakeCheck()">送出</button>
 
         <p id="gameMessage"></p>
-      //  <p>字母a呈現出${CharToInt("a")}而數字5呈現${CharToInt("5")}</p>
+       
 
         <br>
         <button onclick="renderResultPage()">直接到結果畫面</button>
@@ -130,7 +130,7 @@ function renderGamePage() {
 function fakeCheck() {
     state.fakeInput = document.getElementById("gameInput").value;
     document.getElementById("gameMessage").innerText =
-        "你剛剛輸入了：" + state.fakeInput+"是"+checkA("1234",state.fakeInput)+"A"+"字母a呈現出 ${CharToInt("a")} 而數字5呈現 ${CharToInt("5")}";
+    `你剛剛輸入了：${state.fakeInput} 是 ${checkA("1234", state.fakeInput)}A，字母a呈現出 ${CharToInt("a")} 而數字5呈現 ${CharToInt("5")}`;
 }
 
 /* ========= 畫面 3 ========= */
