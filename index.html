@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版第25號</title>
+<title>1A2B 改版第26號</title>
 <style>
 button { margin: 4px; }
 input { width: 80px; text-align: center; }
@@ -28,6 +28,28 @@ input { width: 80px; text-align: center; }
     text-align: center;
     font-size: 32px;
     color: #7f8c8d;
+.btn-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.main-btn button {
+    background-color: #3498db;
+    color: white;
+}
+
+.helper-btn button {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.danger-btn button {
+    background-color: #e74c3c;
+    color: white;
+}
 </style>
 </head>
 
@@ -127,18 +149,33 @@ function startGame(){
 /* ========= 遊戲畫面 ========= */
 function renderGamePage(){
     app.innerHTML=`
-        <h2>猜電腦數字</h2>
+        <h2 class="game-title">猜電腦數字</h2>
         <p id="historys"></p>
         <p>玩家：${state.playerName}</p>
         <p>第 ${state.guesscount+1} 次猜測</p>
         <input id="guessInput">
-        <button onclick="guess()">猜</button>
+        <div class="btn-group main-btn">
+            <button onclick="guess()">猜</button>
+            <button onclick="nextRound()">下一次</button>
+        </div>
+
+        <div class="btn-group helper-btn">
+            <button onclick="giveHint()">提示</button>
+            <button onclick="giveHelp()">幫助</button>
+            <button onclick="showLeft()">顯示剩餘解數量</button>
+        </div>
+
+        <div class="btn-group danger-btn">
+            <button onclick="giveUp()">放棄</button>
+            <button onclick="renderStartPage()">回開始</button>
+        </div>
+/*      <button onclick="guess()">猜</button>
         <button onclick="nextRound()">下一次</button>
         <button onclick="giveHint()">提示</button>
         <button onclick="giveHelp()">幫助</button>
         <button onclick="showLeft()">顯示剩餘解數量</button>
         <button onclick="giveUp()">放棄</button>
-        <button onclick="renderStartPage()">回開始</button>
+        <button onclick="renderStartPage()">回開始</button>  */
         <p id="result"></p>
         <p id="hint"></p>
         <p id="help"></p>
@@ -233,7 +270,7 @@ function showLeft(){
 /* ========= 結果 ========= */
 function victoryPage(){
     app.innerHTML=`
-        <h2>🎉 恭喜猜中！</h2>
+        <h2 class="win-title">🎉 恭喜猜中！</h2>
         <p id="historys"></p>
         <p>答案：${state.answer}</p>
         <button onclick="renderStartPage()">回開始</button>
@@ -243,7 +280,7 @@ function victoryPage(){
 
 function giveUp(){
     app.innerHTML=`
-        <h2>😢 放棄了</h2>
+        <h2 class="lose-title">😢 放棄了</h2>
         <p id="historys"></p>
         <p>答案：${state.answer}</p>
         <button onclick="renderStartPage()">回開始</button>
