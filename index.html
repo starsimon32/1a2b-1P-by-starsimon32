@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 完整教學3 SPA</title>
+<title>1A2B 完整教學4 SPA</title>
 <style>
 button { margin: 2px; }
 input { width: 40px; text-align: center; }
@@ -19,7 +19,7 @@ const state = {
     playerName: "",
     digit: 4,
     fakeInput: "",
-    useHint: true,
+    userepeat: true,
     low: "0",
     high: "9"
 };
@@ -43,8 +43,8 @@ function renderStartPage() {
         <br><br>
 
         <label>
-            是否使用提示：
-            <input type="checkbox" id="useHint" ${state.useHint ? "checked" : ""}>
+            是否允許重複：
+            <input type="checkbox" id="useRepeat" ${state.useRepeat ? "checked" : ""}>
         </label>
         <br><br>
 
@@ -110,22 +110,29 @@ function renderGamePage() {
 
         <p>玩家：${state.playerName}</p>
         <p>遊戲位數：${state.digit}</p>
-        <p>提示狀態：<span id="hintStatus"></span></p>
+        <p>允許重複狀態：<span id="RepeatStatus"></span></p>
         <p>範圍：${state.low} ~ ${state.high}</p>
 
         <input id="gameInput" placeholder="隨便輸入（示範）">
         <button onclick="fakeCheck()">送出</button>
 
         <p id="gameMessage"></p>
-       
+        <p id="testmunber"></p>
 
         <br>
         <button onclick="renderResultPage()">直接到結果畫面</button>
         <button onclick="renderStartPage()">回開始畫面</button>
     `;
 
-    showHintStatus();
+    showRepeatStatus();
+    showTestNumber();
 }
+function showTestNumber() {
+    let a = RandomNumberNoRepeat(state.digit, state.high, state.low);
+    let b = RandomNumberRepeat(state.digit, state.high, state.low);
+    document.getElementById("testnumber").innerText = `不重複：${a}，重複：${b}`;
+}
+
 
 function fakeCheck() {
     state.fakeInput = document.getElementById("gameInput").value;
@@ -141,7 +148,7 @@ function renderResultPage() {
         <p>玩家：${state.playerName}</p>
         <p>遊戲位數：${state.digit}</p>
         <p>最後一次輸入：${state.fakeInput}</p>
-        <p>提示是否開啟：${state.useHint ? "是" : "否"}</p>
+        <p>提示是否開啟：${state.useRepeat ? "是" : "否"}</p>
         <p>範圍：${state.low} ~ ${state.high}</p>
 
         <button onclick="renderStartPage()">重新開始</button>
@@ -149,9 +156,9 @@ function renderResultPage() {
 }
 
 /* ========= 顯示提示開關 ========= */
-function showHintStatus() {
-    const el = document.getElementById("hintStatus");
-    el.innerText = state.useHint ? "已開啟" : "已關閉";
+function showRepeatStatus() {
+    const el = document.getElementById("Repeatstatus");
+    el.innerText = state.useRepeat ? "已允許" : "不允許";
 }
 
 /* ========= 上下限按鈕 ========= */
@@ -179,9 +186,53 @@ function setupCharInput(inputId) {
         el.value = val;
     });
 }
+function RandomNumberNoRepeat(digit, max, min) {
+    const start = allowedChars.indexOf(min);
+    const end = allowedChars.indexOf(max);
+
+    if (start === -1 || end === -1 || start > end) {
+        alert("亂數範圍錯誤");
+        return "";
+    }
+
+    if (digit > end - start + 1) {
+        alert("位數超過可用字元數");
+        return "";
+    }
+
+    let pool = allowedChars.slice(start, end + 1).split("");
+    let result = "";
+
+    for (let i = 0; i < digit; i++) {
+        const idx = Math.floor(Math.random() * pool.length);
+        result += pool[idx];
+        pool.splice(idx, 1); // 移除，避免重複
+    }
+
+    return result;
+}
+function RandomNumberRepeat(digit, max, min) {
+    const start = allowedChars.indexOf(min);
+    const end = allowedChars.indexOf(max);
+
+    if (start === -1 || end === -1 || start > end) {
+        alert("亂數範圍錯誤");
+        return "";
+    }
+
+    let result = "";
+
+    for (let i = 0; i < digit; i++) {
+        const idx = start + Math.floor(Math.random() * (end - start + 1));
+        result += allowedChars[idx];
+    }
+
+    return result; // 字串
+}
+
 //字元變成數字
 function CharToInt(a){
-    return Number(a);
+    return allowedChars.indexOf(a);
 }
 //檢查A
 function checkA(answer, guess) {
