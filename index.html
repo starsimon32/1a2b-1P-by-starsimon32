@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 完整教學11 SPA 修正版</title>
+<title>1A2B 完整教學12 SPA </title>
 <style>
 button { margin: 2px; }
 input { width: 40px; text-align: center; }
@@ -25,7 +25,8 @@ const state = {
     answer:"",
     guesscount:0,
     haveGuessed:false,
-    guess:""
+    guess:"",
+    history:[]
 };
 
 /* ========= 可用字元集合 ========= */
@@ -77,6 +78,7 @@ function renderStartPage() {
 
     state.guesscount = 0;
     state.haveGuessed = false;
+    state.history = [];
 }
 
 /* ========= 讀取設定共用函式 ========= */
@@ -118,24 +120,33 @@ function startGame(){
 function computerIsanswer_alerts(){
     if(!readSettings()) return;
     state.answer = state.useRepeat ? RandomNumberRepeat() : RandomNumberNoRepeat();
+    state.guesscount = 0;
+    state.haveGuessed = false;
+    state.history = [];
     computerIsanswer_pic2();
 }
 
 function computerIsanswer_pic2(){
     document.getElementById("app").innerHTML = `
         <h2>電腦題目畫面</h2>
+        <p id="computerIsinput_Showhistory"></p>
         <p>玩家：${state.playerName}</p>
-        <p>電腦答案是：${state.answer}，此畫面之後會有遊玩</p>
-        <input id="computerIsinput_guess" value="${state.guess}">
+        <p>電腦答案是：${state.answer}，此畫面之後會有遊玩，目前猜第${state.guesscount + 1}次</p>
+        <input id="computerIsinput_guess" value="">
         <p id="computerIsinput_AB"></p>
         <button onclick="f_guess()">猜</button>
         <button onclick="f_guessnext()">猜下一組數字</button>
         <button onclick="renderStartPage()">回開始畫面</button>
     `;
+    showHistory();
 }
 
 /* ========= 猜下一組 ========= */
 function f_guessnext(){
+    if(state.haveGuessed===false){
+        alert("你還沒猜呢~");
+        return;
+    }
     state.haveGuessed = false;
     state.guesscount++;
     computerIsanswer_pic2();
@@ -143,14 +154,36 @@ function f_guessnext(){
 
 /* ========= 猜數字 ========= */
 function f_guess(){
+    let input = document.getElementById("computerIsinput_guess").value;
+    if(input.length !== state.digit){
+        alert("輸入長度錯誤！");
+        return;
+    }
     if(state.haveGuessed){
         alert("你已經猜過了~");
         return;
     }
+
+    state.guess = input;
+    let A = checkA(state.answer, state.guess);
+    let B = checkB(state.answer, state.guess);
+
     state.haveGuessed = true;
-    state.guess = document.getElementById("computerIsinput_guess").value;
+    state.history.push({guess: state.guess, A: A, B: B});
+
     document.getElementById("computerIsinput_AB").innerText =
-        `你剛剛輸入了：${state.guess} 是 ${checkA(state.answer, state.guess)}A${checkB(state.answer, state.guess)}B`;
+        `你剛剛輸入了：${state.guess} 是 ${A}A${B}B`;
+
+    showHistory();
+}
+
+/* ========= 顯示歷史紀錄 ========= */
+function showHistory(){
+    let html = "<h3>歷史紀錄</h3>";
+    for(let i = 0; i < state.history.length; i++){
+        html += `<p>${i + 1}. ${state.history[i].guess} → ${state.history[i].A}A${state.history[i].B}B</p>`;
+    }
+    document.getElementById("computerIsinput_Showhistory").innerHTML = html;
 }
 
 /* ========= 畫面 2 ========= */
@@ -207,7 +240,7 @@ function showTestNumber() {
 function fakeCheck() {
     state.fakeInput = document.getElementById("gameInput").value;
     document.getElementById("gameMessage").innerText =
-    `你剛剛輸入了：${state.fakeInput} 是 ${checkA("1234", state.fakeInput)}A${checkB("1234", state.fakeInput)}B，字母a呈現出 ${CharToInt("a")} 而數字5呈現 ${CharToInt("5")}`;
+    `你剛剛輸入了：${state.fakeInput} 是 ${checkA("1234", state.fakeInput)}A${checkB("1234", state.fakeInput)}B`;
 }
 
 /* ========= 畫面 3 ========= */
