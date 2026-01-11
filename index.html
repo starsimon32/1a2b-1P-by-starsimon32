@@ -143,7 +143,7 @@ function showTestNumber() {
 function fakeCheck() {
     state.fakeInput = document.getElementById("gameInput").value;
     document.getElementById("gameMessage").innerText =
-    `你剛剛輸入了：${state.fakeInput} 是 ${checkA("1234", state.fakeInput)}A，字母a呈現出 ${CharToInt("a")} 而數字5呈現 ${CharToInt("5")}`;
+    `你剛剛輸入了：${state.fakeInput} 是 ${checkA("1234", state.fakeInput)}A${checkB("1234", state.fakeInput)}B，字母a呈現出 ${CharToInt("a")} 而數字5呈現 ${CharToInt("5")}`;
 }
 
 /* ========= 畫面 3 ========= */
@@ -237,6 +237,19 @@ function RandomNumberRepeat(digit, max, min) {
 function CharToInt(a){
     return allowedChars.indexOf(a);
 }
+/* ========= 出現幾次 ========= */
+function countChar(str, char) {
+    let count = 0;
+    for (let i = 0; i < str.length; i++) {
+        if (str[i] === char) count++;
+    }
+    return count;
+}
+function returnMin(a, b) {
+    return a < b ? a : b;
+}
+
+
 
 /* ========= 檢查 A ========= */
 function checkA(answer, guess) {
@@ -255,7 +268,22 @@ function checkA(answer, guess) {
 
     return A;
 }
+function checkB(answer, guess) {
+    if (answer.length !== guess.length) {
+        alert("兩者長度不同");
+        return;
+    }
 
+    let A = checkA(answer, guess);
+    let B = 0;
+
+    for (let i = CharToInt(state.low); i <= CharToInt(state.high); i++) {
+    B += returnMin(countChar(answer, allowedChars[i]), countChar(guess, allowedChars[i]));
+    }
+
+    B-=A;
+    return B;
+}  
 </script>
 
 </body>
