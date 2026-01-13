@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版55</title>
+<title>1A2B 改版56</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -97,7 +97,7 @@ function showcandidates(){
 }
 function getPermutations(str) {
     if (str.length === 1) return [str];
-    const result = [];
+    let result = [];
     for (let i = 0; i < str.length; i++) {
         const char = str[i];                 
         const remaining = str.slice(0,i) + str.slice(i+1); 
@@ -106,7 +106,7 @@ function getPermutations(str) {
             result.push(char + perm);
         }
     }
-    return result;
+    return deletesame(result);
 }
 function generatepossibilities() {
   let min = state.low;
@@ -135,7 +135,7 @@ function generatepossibilities() {
   }
 
   backtrack(0, []);
-return results;
+return deletesame(results);
 }
 
 /* ========= 時間 ========= */
@@ -148,7 +148,41 @@ function checkrepeat(s){ for(let i=0;i<s.length;i++) for(let j=i+1;j<s.length;j+
 function charadd1(c){ let a=CharToInt(c); if(a===CharToInt(state.high)) a=CharToInt(state.low); else a++; return allowedChars[a]; }
 function stringadd1(s){ let a=s.split(""); a[a.length-1]=charadd1(a[a.length-1]); for(let i=a.length-1;i>0;i--){ if(a[i]===state.low) a[i-1]=charadd1(a[i-1]); else break; } return a.join(""); }
 function countChar(s,c){ return [...s].filter(x=>x===c).length; }
-
+function deletesame(st){
+    let array=st;
+    let Ifdelete=[];
+    for(let i=0;i<array.length;i++){
+        Ifdelete.push(0);
+    }
+     for(let i=0;i<array.length;i++){
+        if(Ifdelete[i]===1){
+            continue;
+        }
+        for(let j=i+1;j<array.length;j++){
+             if(array[i]===array[j]){
+                 Ifdelete[j]=1;
+             }
+         }
+    }
+    let outputarray=[];
+    for(let i=0;i<array.length;i++){
+        if(Ifdelete[i]===0){
+            outputarray.push(array[i]);
+        }
+    }
+    return outputarray;
+}
+function randomize(str){
+    let s=str.split("");
+    let output=[];
+    let originallength=s.length;
+    for(let i=0;i<originallength;i++){
+        let num=Math.floor(Math.random() * s.length);
+        output.push(s[num]);
+        s.splice(num, 1);
+    }
+    return output.join("");
+}
 /* ========= 開始畫面 ========= */
 function renderStartPage(){
     state.answerbyuser=false;
@@ -368,32 +402,38 @@ function giveHint(){
 
 /* ========= 幫助 ========= */
 function giveHelp(){
-    let s;
-    if(state.useRepeat){
-        s=RandomNumberRepeat();
-        while(correctguess(s)!==-1) s=stringadd1(s);
-    } else {
-        s=RandomNumberNoRepeat();
-        while(true){
-            if(!checkrepeat(s)){ s=stringadd1(s); continue; }
-            if(correctguess(s)===-1) break;
-            s=stringadd1(s);
+    let s2="";
+    let founded=false;
+    let num = Math.floor(Math.random() * state.candidates.length); 
+    for(let i=0;i<state.candidates.length;i++){
+        let array=getPermutations(randomize(state.candidates[(num+i)%state.candidates.length]));
+        for(let j=0;j<array.length;j++){
+            if(correctguess(array[j])===-1){
+                founded=true;
+                s2=array[j];
+                break;
+            }
+        }
+        if(founded===true){
+            break;
         }
     }
-    document.getElementById("help").innerText=`${s} 是一組解`;
+    document.getElementById("help").innerText=`${s2} 是一組解`;
 }
 
 /* ========= 剩餘解 ========= */
 function showLeft(){
-    let count=0,s,stop;
-    if(state.useRepeat){
-        s=RandomNumberRepeat(); stop=s;
-        do{ if(correctguess(s)===-1) count++; s=stringadd1(s); }while(s!==stop);
-    } else {
-        s=RandomNumberNoRepeat(); stop=s;
-        do{ if(checkrepeat(s)&&correctguess(s)===-1) count++; s=stringadd1(s); }while(s!==stop);
+    let count2=0;
+    let possibilities=state.candidates;
+    for(let i=0;i<possibilities.length;i++){
+        let maybe=getPermutations(possibilities[i]);
+        for(let j=0;j<maybe.length;j++){
+            if(correctguess(maybe[j])===-1){
+                count2++;
+            }
+        }
     }
-    document.getElementById("left").innerText=`剩下 ${count} 組解`;
+    document.getElementById("left").innerText=`剩下${count2}組解`;
 }
 
 /* ========= 結果 ========= */
