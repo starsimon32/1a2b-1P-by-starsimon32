@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版45</title>
+<title>1A2B 改版46</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -76,38 +76,26 @@ const state = {
 };
 
 const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
+
 /* ========= 牌組 ========= */
 function getPermutations(str) {
     if (str.length === 1) return [str];
     const result = [];
     for (let i = 0; i < str.length; i++) {
-            const char = str[i];                 
-            const remaining = str.slice(0,i) + str.slice(i+1); 
-            const perms = getPermutations(remaining);          
-            for (const perm of perms) {
-                result.push(char + perm);
-            }
+        const char = str[i];                 
+        const remaining = str.slice(0,i) + str.slice(i+1); 
+        const perms = getPermutations(remaining);          
+        for (const perm of perms) {
+            result.push(char + perm);
         }
-        return result;
+    }
+    return result;
 }
-/*function generatePermutations() {
-    const input = document.getElementById("inputStr").value.trim();
-        if (!input) {
-            alert("請輸入字元");
-            return;
-        }
 
-        const permutations = getPermutations(input);
-        document.getElementById("output").textContent = permutations.join("\n");
-}       */   
-       
 /* ========= 時間 ========= */
-function givenow(){
-    return Date.now();
-}
-function spendtime(){
-    return (Date.now()-state.starttime)/1000;
-}
+function givenow(){ return Date.now(); }
+function spendtime(){ return (Date.now()-state.starttime)/1000; }
+
 /* ========= 工具 ========= */
 function CharToInt(c){ return allowedChars.indexOf(c); }
 function checkrepeat(s){ for(let i=0;i<s.length;i++) for(let j=i+1;j<s.length;j++) if(s[i]===s[j]) return false; return true; }
@@ -157,7 +145,7 @@ function startGame2(){
     if(CharToInt(state.low)===-1||CharToInt(state.high)===-1){ alert("最低或最高位不合法"); return; }
     if(CharToInt(state.high)<CharToInt(state.low)){ alert("最高位不能小於最低位"); return; }
     if(!state.useRepeat && CharToInt(state.high)-CharToInt(state.low)+1<state.digit){ alert("字元數不足，必定重複"); return; }
-    state.answerbyuser = true; // 記得標記是使用者出題
+    state.answerbyuser = true;
     const app = document.getElementById("app");
     app.innerHTML = `
         <h2 class="start-title">輸入答案</h2>
@@ -170,22 +158,20 @@ function startGame2(){
 function TostartGame(){
     let input = document.getElementById("answerInput").value;
     
-    // 驗證答案格式
     if(!validGuess(input)){
         alert("請輸入正確答案格式");
         return;
     }
 
-    // 設定答案並初始化遊戲狀態
     state.answer = input;
     state.history = [];
     state.guesscount = 0;
     state.haveGuessed = false;
     state.starttime=Date.now();
 
-    // 直接進入遊戲畫面，不呼叫 startGame()，避免覆蓋答案
     renderGamePage();
 }
+
 /* ========= 開始遊戲 ========= */
 function startGame(){
     const app=document.getElementById("app");
@@ -202,7 +188,6 @@ function startGame(){
     if(!state.useRepeat && CharToInt(state.high)-CharToInt(state.low)+1<state.digit){ alert("字元數不足，必定重複"); return; }
     if(!state.answerbyuser){ state.answer=state.useRepeat?RandomNumberRepeat():RandomNumberNoRepeat(); }
     
-
     state.history=[]; state.guesscount=0; state.haveGuessed=false;
     state.starttime=Date.now();
     renderGamePage();
@@ -215,14 +200,14 @@ function renderGamePage(){
     if(state.answerbyuser === false){
         titleWords = "猜電腦數字";
     } else {
-        titleWords = `猜${state.playerName}出的數字`; // 使用反引號
+        titleWords = `猜${state.playerName}出的數字`;
     }
 
     let InnerTexts = "";
     if(state.answerbyuser === false){
         InnerTexts = `玩家：${state.playerName}`;
     } else {
-        InnerTexts = `出題者：${state.playerName}`; // 使用反引號
+        InnerTexts = `出題者：${state.playerName}`;
     }
     app.innerHTML=`
         <h2 class="game-title">${titleWords}</h2>
@@ -270,23 +255,29 @@ function guess(){
     showHistory();
     if(A===state.digit) victoryPage();
 }
+
+/* ========= 系統提示猜 ========= */
 function guessbyrearrange(){
     let input=document.getElementById("guessInput").value;
     if(state.haveGuessed){ alert("本回合已猜"); return; }
     if(!validGuess(input)) return;
+
     let testarray=getPermutations(input);
     let founded=false;
+
     for(let i=0;i<testarray.length;i++){
-        if(correctguess(testarray[i])===-1){
-            alert(`系統找到了，將猜測${testarray[i]}`);
+        if(correctguess(testarray[i]) === -1){
+            alert(`系統找到了，將猜測 ${testarray[i]}`);
+            input = testarray[i];
             founded=true;
-            input=testarray[i];
             break;
         }
     }
+
     if(founded===false){
-        alert(`系統找不到，將猜測input}`;
+        alert(`系統找不到，將猜測 ${input}`);
     }
+
     let A=checkA(state.answer,input);
     let B=checkB(state.answer,input);
     state.history.push({guess:input,A,B});
@@ -296,6 +287,7 @@ function guessbyrearrange(){
     showHistory();
     if(A===state.digit) victoryPage();
 }
+
 function nextRound(){
     if(!state.haveGuessed){ alert("請先猜一次"); return; }
     state.guesscount++; state.haveGuessed=false;
@@ -310,6 +302,7 @@ function correctguess(s){
     }
     return -1;
 }
+
 function giveHint(){
     if(state.history.length===0){ alert("第一次沒有提示"); return; }
     let input=document.getElementById("guessInput").value;
