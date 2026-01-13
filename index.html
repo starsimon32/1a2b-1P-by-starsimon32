@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版43</title>
+<title>1A2B 改版44</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -76,6 +76,31 @@ const state = {
 };
 
 const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
+/* ========= 牌組 ========= */
+function getPermutations(str) {
+    if (str.length === 1) return [str];
+    const result = [];
+    for (let i = 0; i < str.length; i++) {
+            const char = str[i];                 
+            const remaining = str.slice(0,i) + str.slice(i+1); 
+            const perms = getPermutations(remaining);          
+            for (const perm of perms) {
+                result.push(char + perm);
+            }
+        }
+        return result;
+}
+/*function generatePermutations() {
+    const input = document.getElementById("inputStr").value.trim();
+        if (!input) {
+            alert("請輸入字元");
+            return;
+        }
+
+        const permutations = getPermutations(input);
+        document.getElementById("output").textContent = permutations.join("\n");
+}       */   
+       
 /* ========= 時間 ========= */
 function givenow(){
     return Date.now();
@@ -209,6 +234,7 @@ function renderGamePage(){
 
         <div class="btn-group main-btn">
             <button onclick="guess()">猜</button>
+            <button onclick="guessbyrearrange()">我來提示系統猜</button>
             <button onclick="nextRound()">下一次</button>
         </div>
         <div class="btn-group helper-btn">
@@ -235,6 +261,32 @@ function guess(){
     if(state.haveGuessed){ alert("本回合已猜"); return; }
     if(!validGuess(input)) return;
 
+    let A=checkA(state.answer,input);
+    let B=checkB(state.answer,input);
+    state.history.push({guess:input,A,B});
+    state.haveGuessed=true;
+
+    document.getElementById("result").innerText=`${input} → ${A}A${B}B`;
+    showHistory();
+    if(A===state.digit) victoryPage();
+}
+function guessbyrearrange(){
+    let input=document.getElementById("guessInput").value;
+    if(state.haveGuessed){ alert("本回合已猜"); return; }
+    if(!validGuess(input)) return;
+    let testarray=getPermutations(input);
+    let founded=false;
+    for(let i=0;i<testarray.length;i++){
+        if(correctguess(testarray[i]===-1){
+            alert(`系統找到了，將猜測${testarray[i]}`;
+            founded=true;
+            input=testarray[i];
+            break;
+        }
+    }
+    if(founded===false){
+        alert(`系統找不到，將猜測input}`;
+    }
     let A=checkA(state.answer,input);
     let B=checkB(state.answer,input);
     state.history.push({guess:input,A,B});
