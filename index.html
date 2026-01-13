@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版41(回到37版)</title>
+<title>1A2B 改版42</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -71,11 +71,18 @@ const state = {
     guesscount: 0,
     haveGuessed: false,
     answerbyuser: false,
+    starttime: 0,
     history: []
 };
 
 const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
-
+/* ========= 時間 ========= */
+function givenow(){
+    return Date.now();
+}
+function spendtime(){
+    return (Date.now()-state.starttime)/1000;
+}
 /* ========= 工具 ========= */
 function CharToInt(c){ return allowedChars.indexOf(c); }
 function checkrepeat(s){ for(let i=0;i<s.length;i++) for(let j=i+1;j<s.length;j++) if(s[i]===s[j]) return false; return true; }
@@ -149,6 +156,7 @@ function TostartGame(){
     state.history = [];
     state.guesscount = 0;
     state.haveGuessed = false;
+    state.starttime=Date.now();
 
     // 直接進入遊戲畫面，不呼叫 startGame()，避免覆蓋答案
     renderGamePage();
@@ -168,8 +176,10 @@ function startGame(){
     if(CharToInt(state.high)<CharToInt(state.low)){ alert("最高位不能小於最低位"); return; }
     if(!state.useRepeat && CharToInt(state.high)-CharToInt(state.low)+1<state.digit){ alert("字元數不足，必定重複"); return; }
     if(!state.answerbyuser){ state.answer=state.useRepeat?RandomNumberRepeat():RandomNumberNoRepeat(); }
+    
 
     state.history=[]; state.guesscount=0; state.haveGuessed=false;
+    state.starttime=Date.now();
     renderGamePage();
 }
 
@@ -294,6 +304,7 @@ function victoryPage(){
         <h2 class="win-title">🎉 恭喜猜中！</h2>
         <p id="historys"></p>
         <p>答案：${state.answer}</p>
+        <p>耗時：${state.starttime}秒</p>
         <button onclick="renderStartPage()">回開始</button>
     `;
     showHistory();
@@ -304,6 +315,7 @@ function giveUp(){
         <h2 class="lose-title">😢 放棄了</h2>
         <p id="historys"></p>
         <p>答案：${state.answer}</p>
+        <p>耗時：${state.starttime}秒</p>
         <button onclick="renderStartPage()">回開始</button>
     `;
     showHistory();
