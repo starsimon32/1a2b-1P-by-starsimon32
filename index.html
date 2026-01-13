@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版51</title>
+<title>1A2B 改版49</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -89,8 +89,11 @@ function deletecandidates(){
 }
 function showcandidates(){
     let text="可能的候選人<br>";
+
     text+=state.candidates.join(",");
     text+="然後重新組合";
+
+
     document.getElementById("candidates").innerText=`${text} `;
 }
 function getPermutations(str) {
@@ -174,7 +177,6 @@ function describe(){
         幫助按鈕：提供一組與歷史紀錄不矛盾的答案<br>
         顯示剩餘解按鈕：計算剩餘可能組合<br>
         我來提示系統猜按鈕：(此步驟會消耗一次猜的機會，請謹慎使用)輸入一個符合長度和上下界的數字，系統幫你排成和前面幾次猜測都不矛盾的組合，注意到假設無論怎麼湊都會矛盾，系統會自動猜一開始輸入的數<br>
-        顯示候選人：系統跑出剩下哪幾組數字可以用，記得搭配"我來提示系統猜按鈕"使用喔~<br>
         <button onclick="renderStartPage()">回開始</button>
     `;
 }
@@ -243,7 +245,6 @@ function startGame(){
 
 /* ========= 遊戲畫面 ========= */
 function renderGamePage(){
-    showHistory();
     const app=document.getElementById("app");
     let titleWords = "";
     if(state.answerbyuser === false){
@@ -275,7 +276,7 @@ function renderGamePage(){
             <button onclick="giveHint()">提示</button>
             <button onclick="giveHelp()">幫助</button>
             <button onclick="showLeft()">顯示剩餘解數量</button>
-            <button onclick="showcandidates()">顯示候選人</button>
+            <button onclick="showcandidatest()">顯示候選人</button>
         </div>
         <div class="btn-group danger-btn">
             <button onclick="giveUp()">放棄</button>
@@ -289,6 +290,7 @@ function renderGamePage(){
         <p id="candidates"></p>
     `;
     deletecandidates();
+    showHistory();
 }
 
 /* ========= 猜 ========= */
