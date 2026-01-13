@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版44</title>
+<title>1A2B 改版45</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -277,8 +277,8 @@ function guessbyrearrange(){
     let testarray=getPermutations(input);
     let founded=false;
     for(let i=0;i<testarray.length;i++){
-        if(correctguess(testarray[i]===-1){
-            alert(`系統找到了，將猜測${testarray[i]}`;
+        if(correctguess(testarray[i])===-1){
+            alert(`系統找到了，將猜測${testarray[i]}`);
             founded=true;
             input=testarray[i];
             break;
