@@ -9,6 +9,10 @@
 #result { color: #16a34a; font-weight: bold; }
 #hint   { color: #2563eb; }
 #help   { color: #9333ea; }
+#candidate {
+    white-space: pre-line; /* 讓元素能辨識 \n 並換行 */
+    color: #ffbfdd;
+}
 /* 整個畫面置中 */
 body {
     margin: 0;
@@ -86,9 +90,9 @@ function deletecandidates(){
     state.candidates = state.candidates.filter(s => checkApulsB(s, state.history[state.history.length-1].guess) === (state.history[state.history.length-1].A + state.history[state.history.length-1].B));
 }
 function showcandidates(){
-    let text="可能的候選人<br>";
+    let text="可能的候選人\n";
     text+=state.candidates.join(",");
-    text+="然後重新組合";
+    text+="\n然後重新組合";
     document.getElementById("candidates").innerText=`${text} `;
 }
 function getPermutations(str) {
