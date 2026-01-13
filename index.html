@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版47</title>
+<title>1A2B 改版48</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -91,6 +91,35 @@ function getPermutations(str) {
     }
     return result;
 }
+function generatepossibilities() {
+  let min = state.low;
+  let max = state.high;
+  let length = state.digit;
+  let repeat = state.useRepeat;
+
+  const numbers = [];
+  for (let i = min; i <= max; i++) {
+    numbers.push(i.toString());
+  }
+
+  const results = [];
+
+  function backtrack(startIndex, current) {
+    if (current.length === length) {
+      results.push(current.join(""));
+      return;
+    }
+
+    for (let i = startIndex; i < numbers.length; i++) {
+      current.push(numbers[i]);
+      backtrack(repeat ? i : i + 1, current);
+      current.pop();
+    }
+  }
+
+  backtrack(0, []);
+return result;
+}
 
 /* ========= 時間 ========= */
 function givenow(){ return Date.now(); }
@@ -129,7 +158,7 @@ function describe(){
         提示按鈕：輸入自己的答案後，告訴使用者是否與歷史紀錄矛盾<br>
         幫助按鈕：提供一組與歷史紀錄不矛盾的答案<br>
         顯示剩餘解按鈕：計算剩餘可能組合<br>
-        我來替是系統猜按鈕：(此步驟會消耗一次猜的機會，請謹慎使用)輸入一個符合長度和上下界的數字，系統幫你排成和前面幾次猜測都不矛盾的組合，注意到假設無論怎麼湊都會矛盾，系統會自動猜一開始輸入的數<br>
+        我來提示系統猜按鈕：(此步驟會消耗一次猜的機會，請謹慎使用)輸入一個符合長度和上下界的數字，系統幫你排成和前面幾次猜測都不矛盾的組合，注意到假設無論怎麼湊都會矛盾，系統會自動猜一開始輸入的數<br>
         <button onclick="renderStartPage()">回開始</button>
     `;
 }
@@ -395,7 +424,9 @@ function validGuess(input){
 /* ========= 判斷 ========= */
 function checkA(a,g){ let A=0; for(let i=0;i<a.length;i++) if(a[i]===g[i]) A++; return A; }
 function checkB(a,g){ let B=0; for(let i=CharToInt(state.low);i<=CharToInt(state.high);i++){ let c=allowedChars[i]; B+=Math.min(countChar(a,c),countChar(g,c)); } return B-checkA(a,g); }
-
+function checkApulsB(a,g){
+    return checkA(a,g)+checkB(a,g)
+}
 /* ========= 亂數 ========= */
 function RandomNumberRepeat(){ let r="",s=CharToInt(state.low),e=CharToInt(state.high); for(let i=0;i<state.digit;i++) r+=allowedChars[s+Math.floor(Math.random()*(e-s+1))]; return r; }
 function RandomNumberNoRepeat(){ let pool=allowedChars.slice(CharToInt(state.low),CharToInt(state.high)+1).split(""); let r=""; for(let i=0;i<state.digit;i++){ let idx=Math.floor(Math.random()*pool.length); r+=pool.splice(idx,1)[0]; } return r; }
