@@ -2,26 +2,14 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版40</title>
-
+<title>1A2B 改版41(回到37版)</title>
 <style>
-#timer {
-    position: absolute;
-    top: 16px;
-    right: 20px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #374151;
-}
-#app {
-    position: relative;
-    width: 420px;
-    background-color: white;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-}
-
+/* 文字顏色 */
+#left { color: #dc2626; }
+#result { color: #16a34a; font-weight: bold; }
+#hint   { color: #2563eb; }
+#help   { color: #9333ea; }
+/* 整個畫面置中 */
 body {
     margin: 0;
     min-height: 100vh;
@@ -32,175 +20,181 @@ body {
     font-family: Arial, sans-serif;
 }
 
+/* 遊戲主面板 */
+#app {
+    width: 420px;
+    background-color: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
 input { width: 80px; text-align: center; }
 
-.start-title { text-align: center; font-size: 32px; }
+.start-title { text-align: center; font-size: 32px; color: #2c3e50; }
 .game-title { text-align: center; font-size: 34px; color: #3498db; }
-.win-title { text-align: center; font-size: 36px; color: #16a34a; }
+.win-title { text-align: center; font-size: 36px; color: #27ae60; }
 .lose-title { text-align: center; font-size: 32px; color: #7f8c8d; }
 
 button {
     margin: 4px;
     padding: 8px 14px;
     font-size: 16px;
+    transition: 0.2s;
     cursor: pointer;
 }
+button:hover { transform: scale(1.05); }
 
 .btn-group {
     display: flex;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
     margin-top: 10px;
 }
-
-.main-btn button { background:#3498db; color:white; }
-.helper-btn button { background:#95a5a6; color:white; }
-.danger-btn button { background:#e74c3c; color:white; }
-
-#result { color:#16a34a; font-weight:bold; }
-#hint   { color:#2563eb; }
-#help   { color:#9333ea; }
-#left   { color:#dc2626; }
+.main-btn button { background-color: #3498db; color: white; }
+.helper-btn button { background-color: #95a5a6; color: white; }
+.danger-btn button { background-color: #e74c3c; color: white; }
 </style>
 </head>
-
 <body onload="renderStartPage()">
 <div id="app"></div>
 
 <script>
-/* ========= 狀態 ========= */
+/* ========= 全域狀態 ========= */
 const state = {
-    playerName:"",
-    digit:4,
-    useRepeat:false,
-    low:"0",
-    high:"9",
-    answer:"",
-    guesscount:0,
-    haveGuessed:false,
-    answerbyuser:false,
-    history:[]
+    playerName: "",
+    digit: 4,
+    useRepeat: false,
+    low: "0",
+    high: "9",
+    answer: "",
+    guesscount: 0,
+    haveGuessed: false,
+    answerbyuser: false,
+    history: []
 };
 
-const allowedChars="0123456789abcdefghijklmnopqrstuvwxyz";
-
-/* ========= 計時 ========= */
-let timerId=null;
-let startTime=0;
-
-function startTimer(){
-    stopTimer();
-    startTime=Date.now();
-    timerId=setInterval(updateTimer,1000);
-}
-function stopTimer(){
-    if(timerId!==null){
-        clearInterval(timerId);
-        timerId=null;
-    }
-}
-function getElapsed(){
-    return Math.floor((Date.now()-startTime)/1000);
-}
-function formatTime(sec){
-    const m=String(Math.floor(sec/60)).padStart(2,"0");
-    const s=String(sec%60).padStart(2,"0");
-    return `${m}:${s}`;
-}
-function updateTimer(){
-    const t=document.getElementById("timer");
-    if(t) t.innerText=formatTime(getElapsed());
-}
+const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 /* ========= 工具 ========= */
 function CharToInt(c){ return allowedChars.indexOf(c); }
+function checkrepeat(s){ for(let i=0;i<s.length;i++) for(let j=i+1;j<s.length;j++) if(s[i]===s[j]) return false; return true; }
+function charadd1(c){ let a=CharToInt(c); if(a===CharToInt(state.high)) a=CharToInt(state.low); else a++; return allowedChars[a]; }
+function stringadd1(s){ let a=s.split(""); a[a.length-1]=charadd1(a[a.length-1]); for(let i=a.length-1;i>0;i--){ if(a[i]===state.low) a[i-1]=charadd1(a[i-1]); else break; } return a.join(""); }
 function countChar(s,c){ return [...s].filter(x=>x===c).length; }
-function checkrepeat(s){ return new Set(s).size===s.length; }
-
-function charadd1(c){
-    let a=CharToInt(c);
-    return allowedChars[a===CharToInt(state.high)?CharToInt(state.low):a+1];
-}
-function stringadd1(s){
-    let a=s.split("");
-    a[a.length-1]=charadd1(a[a.length-1]);
-    for(let i=a.length-1;i>0;i--){
-        if(a[i]===state.low) a[i-1]=charadd1(a[i-1]);
-        else break;
-    }
-    return a.join("");
-}
 
 /* ========= 開始畫面 ========= */
 function renderStartPage(){
-    stopTimer();
     state.answerbyuser=false;
+    const app=document.getElementById("app");
     app.innerHTML=`
-        <div id="timer">00:00</div>
-        <h2 class="start-title">歡迎來到 1A2B</h2>
-        玩家名稱 <input id="nameInput"><br><br>
-        位數 <input id="digitInput" type="number" value="4"><br><br>
-        最低位 <input id="lowInput" value="0"><br><br>
-        最高位 <input id="highInput" value="9"><br><br>
-        允許重複 <input type="checkbox" id="useRepeat"><br><br>
+        <h2 class="start-title">歡迎來到1A2B</h2>
+        玩家名稱 <input id="nameInput" value="${state.playerName}"><br><br>
+        位數 <input id="digitInput" type="number" value="${state.digit}"><br><br>
+        最低位 <input id="lowInput" value="${state.low}" maxlength="1"><br><br>
+        最高位 <input id="highInput" value="${state.high}" maxlength="1"><br><br>
+        允許重複 <input type="checkbox" id="useRepeat" ${state.useRepeat?"checked":""}><br><br>
         <button onclick="startGame()">電腦出題</button>
         <button onclick="startGame2()">我來出題</button>
+        <button onclick="describe()">規則說明</button>
+    `;
+}
+
+/* ========= 說明 ========= */
+function describe(){
+    const app=document.getElementById("app");
+    app.innerHTML=`
+        <h2 class="start-title">規則說明</h2>
+        遊戲規則：答案由玩家設定，包含重複或不重複、位數及幾進位(本遊戲支援36進位 a=10 ... z)<br>
+        提示按鈕：輸入自己的答案後，告訴使用者是否與歷史紀錄矛盾<br>
+        幫助按鈕：提供一組與歷史紀錄不矛盾的答案<br>
+        顯示剩餘解按鈕：計算剩餘可能組合<br>
+        <button onclick="renderStartPage()">回開始</button>
     `;
 }
 
 /* ========= 使用者出題 ========= */
 function startGame2(){
-    state.playerName=nameInput.value;
-    state.digit=+digitInput.value;
-    state.low=lowInput.value;
-    state.high=highInput.value;
-    state.useRepeat=useRepeat.checked;
+    state.playerName=document.getElementById("nameInput").value;
+    state.digit=Number(document.getElementById("digitInput").value);
+    state.useRepeat=document.getElementById("useRepeat").checked;
+    state.low=document.getElementById("lowInput").value;
+    state.high=document.getElementById("highInput").value;
 
-    state.answerbyuser=true;
-    app.innerHTML=`
+    if(state.playerName.length===0){ alert("請輸入玩家名稱"); return; }
+    if(CharToInt(state.low)===-1||CharToInt(state.high)===-1){ alert("最低或最高位不合法"); return; }
+    if(CharToInt(state.high)<CharToInt(state.low)){ alert("最高位不能小於最低位"); return; }
+    if(!state.useRepeat && CharToInt(state.high)-CharToInt(state.low)+1<state.digit){ alert("字元數不足，必定重複"); return; }
+    state.answerbyuser = true; // 記得標記是使用者出題
+    const app = document.getElementById("app");
+    app.innerHTML = `
         <h2 class="start-title">輸入答案</h2>
-        <input id="answerInput"><br><br>
+        我的答案 <input id="answerInput" value="${state.answer}"><br><br>
         <button onclick="renderStartPage()">回首頁</button>
-        <button onclick="confirmUserAnswer()">出發</button>
+        <button onclick="TostartGame()">出發</button>
     `;
 }
 
-function confirmUserAnswer(){
-    const input=answerInput.value;
-    if(!validGuess(input)) return;
-    state.answer=input;
-    startTimer();
-    initGame();
-}
+function TostartGame(){
+    let input = document.getElementById("answerInput").value;
+    
+    // 驗證答案格式
+    if(!validGuess(input)){
+        alert("請輸入正確答案格式");
+        return;
+    }
 
-/* ========= 電腦出題 ========= */
+    // 設定答案並初始化遊戲狀態
+    state.answer = input;
+    state.history = [];
+    state.guesscount = 0;
+    state.haveGuessed = false;
+
+    // 直接進入遊戲畫面，不呼叫 startGame()，避免覆蓋答案
+    renderGamePage();
+}
+/* ========= 開始遊戲 ========= */
 function startGame(){
-    state.playerName=nameInput.value;
-    state.digit=+digitInput.value;
-    state.low=lowInput.value;
-    state.high=highInput.value;
-    state.useRepeat=useRepeat.checked;
+    const app=document.getElementById("app");
 
-    state.answer=state.useRepeat?RandomNumberRepeat():RandomNumberNoRepeat();
-    startTimer();
-    initGame();
-}
+    state.playerName=document.getElementById("nameInput").value;
+    state.digit=Number(document.getElementById("digitInput").value);
+    state.useRepeat=document.getElementById("useRepeat").checked;
+    state.low=document.getElementById("lowInput").value;
+    state.high=document.getElementById("highInput").value;
 
-function initGame(){
-    state.history=[];
-    state.guesscount=0;
-    state.haveGuessed=false;
+    if(state.playerName.length===0){ alert("請輸入玩家名稱"); return; }
+    if(CharToInt(state.low)===-1||CharToInt(state.high)===-1){ alert("最低或最高位不合法"); return; }
+    if(CharToInt(state.high)<CharToInt(state.low)){ alert("最高位不能小於最低位"); return; }
+    if(!state.useRepeat && CharToInt(state.high)-CharToInt(state.low)+1<state.digit){ alert("字元數不足，必定重複"); return; }
+    if(!state.answerbyuser){ state.answer=state.useRepeat?RandomNumberRepeat():RandomNumberNoRepeat(); }
+
+    state.history=[]; state.guesscount=0; state.haveGuessed=false;
     renderGamePage();
 }
 
-/* ========= 遊戲 ========= */
+/* ========= 遊戲畫面 ========= */
 function renderGamePage(){
+    const app=document.getElementById("app");
+    let titleWords = "";
+    if(state.answerbyuser === false){
+        titleWords = "猜電腦數字";
+    } else {
+        titleWords = `猜${state.playerName}出的數字`; // 使用反引號
+    }
+
+    let InnerTexts = "";
+    if(state.answerbyuser === false){
+        InnerTexts = `玩家：${state.playerName}`;
+    } else {
+        InnerTexts = `出題者：${state.playerName}`; // 使用反引號
+    }
     app.innerHTML=`
-        <div id="timer"></div>
-        <h2 class="game-title">猜數字</h2>
-        <p>玩家：${state.playerName}</p>
+        <h2 class="game-title">${titleWords}</h2>
+        <p>${InnerTexts}</p>
+        <p>請猜${state.digit}位數，上限${state.high}，下限${state.low}</p>
         <p id="historys"></p>
+        <p>第 ${state.guesscount+1} 次猜測</p>
         <input id="guessInput">
 
         <div class="btn-group main-btn">
@@ -210,10 +204,11 @@ function renderGamePage(){
         <div class="btn-group helper-btn">
             <button onclick="giveHint()">提示</button>
             <button onclick="giveHelp()">幫助</button>
-            <button onclick="showLeft()">剩餘解</button>
+            <button onclick="showLeft()">顯示剩餘解數量</button>
         </div>
         <div class="btn-group danger-btn">
             <button onclick="giveUp()">放棄</button>
+            <button onclick="renderStartPage()">回開始</button>
         </div>
 
         <p id="result"></p>
@@ -221,100 +216,130 @@ function renderGamePage(){
         <p id="help"></p>
         <p id="left"></p>
     `;
-    updateTimer();
     showHistory();
 }
 
+/* ========= 猜 ========= */
 function guess(){
-    const input=guessInput.value;
+    let input=document.getElementById("guessInput").value;
+    if(state.haveGuessed){ alert("本回合已猜"); return; }
     if(!validGuess(input)) return;
 
-    const A=checkA(state.answer,input);
-    const B=checkB(state.answer,input);
+    let A=checkA(state.answer,input);
+    let B=checkB(state.answer,input);
     state.history.push({guess:input,A,B});
     state.haveGuessed=true;
 
-    result.innerText=`${input} → ${A}A${B}B`;
+    document.getElementById("result").innerText=`${input} → ${A}A${B}B`;
     showHistory();
     if(A===state.digit) victoryPage();
 }
-
 function nextRound(){
-    if(!state.haveGuessed) return;
-    state.guesscount++;
-    state.haveGuessed=false;
+    if(!state.haveGuessed){ alert("請先猜一次"); return; }
+    state.guesscount++; state.haveGuessed=false;
     renderGamePage();
 }
 
-/* ========= 勝負 ========= */
+/* ========= 提示 ========= */
+function correctguess(s){
+    for(let i=0;i<state.history.length;i++){
+        let h=state.history[i];
+        if(checkA(h.guess,s)!==h.A || checkB(h.guess,s)!==h.B) return i;
+    }
+    return -1;
+}
+function giveHint(){
+    if(state.history.length===0){ alert("第一次沒有提示"); return; }
+    let input=document.getElementById("guessInput").value;
+    if(!validGuess(input)) return;
+    let a=correctguess(input);
+    let msg=(a===-1)?"此猜測與所有歷史紀錄相容":`與第 ${a+1} 次猜測矛盾`;
+    document.getElementById("hint").innerText=msg;
+}
+
+/* ========= 幫助 ========= */
+function giveHelp(){
+    let s;
+    if(state.useRepeat){
+        s=RandomNumberRepeat();
+        while(correctguess(s)!==-1) s=stringadd1(s);
+    } else {
+        s=RandomNumberNoRepeat();
+        while(true){
+            if(!checkrepeat(s)){ s=stringadd1(s); continue; }
+            if(correctguess(s)===-1) break;
+            s=stringadd1(s);
+        }
+    }
+    document.getElementById("help").innerText=`${s} 是一組解`;
+}
+
+/* ========= 剩餘解 ========= */
+function showLeft(){
+    let count=0,s,stop;
+    if(state.useRepeat){
+        s=RandomNumberRepeat(); stop=s;
+        do{ if(correctguess(s)===-1) count++; s=stringadd1(s); }while(s!==stop);
+    } else {
+        s=RandomNumberNoRepeat(); stop=s;
+        do{ if(checkrepeat(s)&&correctguess(s)===-1) count++; s=stringadd1(s); }while(s!==stop);
+    }
+    document.getElementById("left").innerText=`剩下 ${count} 組解`;
+}
+
+/* ========= 結果 ========= */
 function victoryPage(){
-    stopTimer();
-    const time=formatTime(getElapsed());
+    const app=document.getElementById("app");
     app.innerHTML=`
         <h2 class="win-title">🎉 恭喜猜中！</h2>
-        <p>花了時間：${time}</p>
+        <p id="historys"></p>
         <p>答案：${state.answer}</p>
         <button onclick="renderStartPage()">回開始</button>
     `;
+    showHistory();
 }
-
 function giveUp(){
-    stopTimer();
-    const time=formatTime(getElapsed());
+    const app=document.getElementById("app");
     app.innerHTML=`
         <h2 class="lose-title">😢 放棄了</h2>
-        <p>花了時間：${time}</p>
+        <p id="historys"></p>
         <p>答案：${state.answer}</p>
         <button onclick="renderStartPage()">回開始</button>
     `;
-}
-
-/* ========= 判斷 ========= */
-function validGuess(input){
-    if(input.length!==state.digit) return alert("長度錯誤"),false;
-    if(!state.useRepeat && !checkrepeat(input)) return alert("不允許重複"),false;
-    for(let c of input){
-        let i=CharToInt(c);
-        if(i<CharToInt(state.low)||i>CharToInt(state.high)) return alert("範圍錯誤"),false;
-    }
-    return true;
-}
-function checkA(a,g){ return [...a].filter((x,i)=>x===g[i]).length; }
-function checkB(a,g){
-    let B=0;
-    for(let i=CharToInt(state.low);i<=CharToInt(state.high);i++){
-        let c=allowedChars[i];
-        B+=Math.min(countChar(a,c),countChar(g,c));
-    }
-    return B-checkA(a,g);
+    showHistory();
 }
 
 /* ========= 歷史 ========= */
 function showHistory(){
     let html="<b>歷史紀錄</b><br>";
-    if(state.history.length===0) html+="暫無";
+    if(state.history.length===0) html+="暫無紀錄";
     state.history.forEach((h,i)=>{
-        html+=`第${i+1}次：${h.guess} → ${h.A}A${h.B}B<br>`;
+        html+=`第 ${i+1} 次：${h.guess} → ${h.A}A${h.B}B<br>`;
     });
-    historys.innerHTML=html;
+    document.getElementById("historys").innerHTML=html;
 }
 
-/* ========= 亂數 ========= */
-function RandomNumberRepeat(){
-    let r="",s=CharToInt(state.low),e=CharToInt(state.high);
-    for(let i=0;i<state.digit;i++)
-        r+=allowedChars[s+Math.floor(Math.random()*(e-s+1))];
-    return r;
-}
-function RandomNumberNoRepeat(){
-    let pool=allowedChars.slice(CharToInt(state.low),CharToInt(state.high)+1).split("");
-    let r="";
-    for(let i=0;i<state.digit;i++){
-        let idx=Math.floor(Math.random()*pool.length);
-        r+=pool.splice(idx,1)[0];
+/* ========= 驗證 ========= */
+function validGuess(input){
+    if(input.length!==state.digit){ alert("輸入長度錯誤"); return false; }
+    for(let c of input){
+        let idx=CharToInt(c);
+        if(idx===-1||idx<CharToInt(state.low)||idx>CharToInt(state.high)){
+            alert("含非法或超出範圍字元"); return false;
+        }
     }
-    return r;
+    if(!state.useRepeat && new Set(input).size!==input.length){ alert("不允許重複"); return false; }
+    return true;
 }
+
+/* ========= 判斷 ========= */
+function checkA(a,g){ let A=0; for(let i=0;i<a.length;i++) if(a[i]===g[i]) A++; return A; }
+function checkB(a,g){ let B=0; for(let i=CharToInt(state.low);i<=CharToInt(state.high);i++){ let c=allowedChars[i]; B+=Math.min(countChar(a,c),countChar(g,c)); } return B-checkA(a,g); }
+
+/* ========= 亂數 ========= */
+function RandomNumberRepeat(){ let r="",s=CharToInt(state.low),e=CharToInt(state.high); for(let i=0;i<state.digit;i++) r+=allowedChars[s+Math.floor(Math.random()*(e-s+1))]; return r; }
+function RandomNumberNoRepeat(){ let pool=allowedChars.slice(CharToInt(state.low),CharToInt(state.high)+1).split(""); let r=""; for(let i=0;i<state.digit;i++){ let idx=Math.floor(Math.random()*pool.length); r+=pool.splice(idx,1)[0]; } return r; }
+
 </script>
 </body>
 </html>
