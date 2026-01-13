@@ -2,8 +2,20 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版37</title>
+<title>1A2B 改版38</title>
 <style>
+#timer {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #374151;
+}
+#app {
+    position: relative; /* 讓 timer 以面板為基準 */
+}
+
 /* 文字顏色 */
 #left { color: #dc2626; }
 #result { color: #16a34a; font-weight: bold; }
@@ -71,10 +83,34 @@ const state = {
     guesscount: 0,
     haveGuessed: false,
     answerbyuser: false,
+    timerId = null,
+    startTime = 0,
     history: []
 };
 
 const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
+/* ========= 時間 ========= */
+function startTimer(){
+    startTime = Date.now();
+    stopTimer(); // 保險，避免重複跑
+    timerId = setInterval(updateTimer, 1000);
+}
+
+function stopTimer(){
+    if(timerId !== null){
+        clearInterval(timerId);
+        timerId = null;
+    }
+}
+
+function updateTimer(){
+    const now = Date.now();
+    const sec = Math.floor((now - startTime) / 1000);
+    const m = String(Math.floor(sec / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    const t = document.getElementById("timer");
+    if(t) t.innerText = `${m}:${s}`;
+}
 
 /* ========= 工具 ========= */
 function CharToInt(c){ return allowedChars.indexOf(c); }
@@ -88,6 +124,7 @@ function renderStartPage(){
     state.answerbyuser=false;
     const app=document.getElementById("app");
     app.innerHTML=`
+        <div id="timer">00:00</div>
         <h2 class="start-title">歡迎來到1A2B</h2>
         玩家名稱 <input id="nameInput" value="${state.playerName}"><br><br>
         位數 <input id="digitInput" type="number" value="${state.digit}"><br><br>
@@ -98,6 +135,7 @@ function renderStartPage(){
         <button onclick="startGame2()">我來出題</button>
         <button onclick="describe()">規則說明</button>
     `;
+    startTimer();
 }
 
 /* ========= 說明 ========= */
@@ -289,6 +327,7 @@ function showLeft(){
 
 /* ========= 結果 ========= */
 function victoryPage(){
+    stopTimer();
     const app=document.getElementById("app");
     app.innerHTML=`
         <h2 class="win-title">🎉 恭喜猜中！</h2>
@@ -299,6 +338,7 @@ function victoryPage(){
     showHistory();
 }
 function giveUp(){
+    stopTimer();
     const app=document.getElementById("app");
     app.innerHTML=`
         <h2 class="lose-title">😢 放棄了</h2>
