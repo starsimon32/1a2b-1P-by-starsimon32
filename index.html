@@ -2,14 +2,14 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版58</title>
+<title>1A2B 改版59</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
 #result { color: #16a34a; font-weight: bold; }
 #hint   { color: #2563eb; }
 #help   { color: #9333ea; }
-#candidate {
+#candidates {
     white-space: pre-line; /* 讓元素能辨識 \n 並換行 */
     color: #ffbfdd;
 }
@@ -86,10 +86,26 @@ const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
 function initialcandidates(){
     state.candidates=generatepossibilities();
 }
+function initialcandidates2(){
+    if(state.history.length === 0) return;
+    state.candidates=generatepossibilities2();
+}
 function deletecandidates(){
-    state.candidates = state.candidates.filter(s => checkApulsB(s, state.history[state.history.length-1].guess) === (state.history[state.history.length-1].A + state.history[state.history.length-1].B));
+    state.candidates = state.candidates.filter(s => checkAplusB(s, state.history[state.history.length-1].guess) === (state.history[state.history.length-1].A + state.history[state.history.length-1].B));
 }
 function showcandidates(){
+    if(state.candidates.length === 0){
+    alert("尚未建立候選集合");
+    return;
+    }
+    if(Istoobig()===2){
+        alert("數字太大不可以用");
+        return;
+    }
+    if(Istoobig()===1&&state.guesscount===0){
+        alert("數字太大，第一次不可用");
+        return;
+    }
     let text="可能的候選人\n";
     text+=state.candidates.join(",");
     text+="\n然後重新組合";
@@ -115,11 +131,11 @@ function generatepossibilities() {
   let repeat = state.useRepeat;
 
   const numbers = [];
-  for (let i = min; i <= max; i++) {
-    numbers.push(i.toString());
-  }
+  for (let i = CharToInt(min); i <= CharToInt(max); i++) {
+    numbers.push(allowedChars[i]);
+}
 
-  const results = [];
+  let results = [];
 
   function backtrack(startIndex, current) {
     if (current.length === length) {
@@ -138,11 +154,54 @@ function generatepossibilities() {
 return deletesame(results);
 }
 
+function generatepossibilities2() {
+  let min = state.low;
+  let max = state.high;
+  let length = state.digit;
+  let repeat = state.useRepeat;
+
+  const numbers = [];
+  for (let i = CharToInt(min); i <= CharToInt(max); i++) {
+    numbers.push(allowedChars[i]);
+}
+
+  let results = [];
+
+  function backtrack(startIndex, current) {
+    if (current.length === length&& checkAplusB(current.join(""),state.history[0].guess)===(state.history[0].A+state.history[0].B)) {
+      results.push(current.join(""));
+      return;
+    }
+
+    for (let i = startIndex; i < numbers.length; i++) {
+      current.push(numbers[i]);
+      backtrack(repeat ? i : i + 1, current);
+      current.pop();
+    }
+  }
+
+  backtrack(0, []);
+return deletesame(results);
+}
 /* ========= 時間 ========= */
 function givenow(){ return Date.now(); }
 function spendtime(){ return (Date.now()-state.starttime)/1000; }
 
 /* ========= 工具 ========= */
+function Istoobig(){
+    let a=CharToInt(state.high)-CharToInt(state.low);
+    let b=state.digit;
+    let c=Math.pow(a, b);
+    if(c>=1000000){
+        return 2;
+    }
+    else if (c>=100000){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
 function CharToInt(c){ return allowedChars.indexOf(c); }
 function checkrepeat(s){ for(let i=0;i<s.length;i++) for(let j=i+1;j<s.length;j++) if(s[i]===s[j]) return false; return true; }
 function charadd1(c){ let a=CharToInt(c); if(a===CharToInt(state.high)) a=CharToInt(state.low); else a++; return allowedChars[a]; }
@@ -209,9 +268,10 @@ function describe(){
         <h2 class="start-title">規則說明</h2>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">遊戲規則：</span><br>答案由玩家設定，包含重複或不重複、位數及幾進位(本遊戲支援36進位 a=10 、b=11.. z=35)<br>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">提示按鈕：</span><br>輸入自己的答案後，告訴使用者是否與歷史紀錄矛盾<br>
-        <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">幫助按鈕：</span><br>提供一組與歷史紀錄不矛盾的答案<br>
-        <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">顯示剩餘解按鈕：</span><br>計算剩餘可能組合<br>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">我來提示系統猜按鈕：</span><br>(此步驟會消耗一次猜的機會，請謹慎使用)輸入一個符合長度和上下界的數字，系統幫你排成和前面幾次猜測都不矛盾的組合，注意到假設無論怎麼湊都會矛盾，系統會自動猜一開始輸入的數<br>
+        <span style="font-size: 25px; color: #ff1100; font-weight: bold;">以下這些按鈕在可能性太大時將無法執行</span><br>
+        <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">幫助按鈕：</span><br>提供一組與歷史紀錄不矛盾的答案<br>
+        <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">顯示剩餘解按鈕：</span><br>計算剩餘可能組合<br>        
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">顯示候選人按鈕：</span><br>直接告訴你還有哪些組合，不過建議配合"我來提示系統猜按鈕"<br>
         <div class="btn-group danger-btn">
             <button onclick="renderStartPage()">回開始</button>
@@ -254,7 +314,10 @@ function TostartGame(){
     state.guesscount = 0;
     state.haveGuessed = false;
     state.starttime=Date.now();
-    initialcandidates();
+    if(Istoobig()===0){
+        initialcandidates();
+    }
+    
 
     renderGamePage();
 }
@@ -262,6 +325,7 @@ function TostartGame(){
 /* ========= 開始遊戲 ========= */
 function startGame(){
     const app=document.getElementById("app");
+   
 
     state.playerName=document.getElementById("nameInput").value;
     state.digit=Number(document.getElementById("digitInput").value);
@@ -277,12 +341,17 @@ function startGame(){
     
     state.history=[]; state.guesscount=0; state.haveGuessed=false;
     state.starttime=Date.now();
-    initialcandidates();
+    if(Istoobig()===0){
+        initialcandidates();
+    }
     renderGamePage();
 }
 
 /* ========= 遊戲畫面 ========= */
 function renderGamePage(){
+    if(Istoobig()===1 && state.guesscount===1){
+        initialcandidates2();
+    }
     const app=document.getElementById("app");
     let titleWords = "";
     if(state.answerbyuser === false){
@@ -344,6 +413,7 @@ function guess(){
     document.getElementById("result").innerText=`${input} → ${A}A${B}B`;
     showHistory();
     if(A===state.digit) victoryPage();
+    if(Istoobig()===0 || (Istoobig()===1&&state.guesscount>=1))
     deletecandidates();
 }
 
@@ -406,6 +476,14 @@ function giveHint(){
 
 /* ========= 幫助 ========= */
 function giveHelp(){
+    if(Istoobig()===2){
+        alert("數字太大不可以用");
+        return;
+    }
+    if(Istoobig()===1&&state.guesscount===0){
+        alert("數字太大，第一次不可用");
+        return;
+    }
     let s2="";
     let founded=false;
     let num = Math.floor(Math.random() * state.candidates.length); 
@@ -427,6 +505,18 @@ function giveHelp(){
 
 /* ========= 剩餘解 ========= */
 function showLeft(){
+    if(state.candidates.length === 0){
+    alert("尚未建立候選集合");
+    return;
+    }
+    if(Istoobig()===2){
+        alert("數字太大不可以用");
+        return;
+    }
+    if(Istoobig()===1&&state.guesscount===0){
+        alert("數字太大，第一次不可用");
+        return;
+    }
     let count2=0;
     let possibilities=state.candidates;
     for(let i=0;i<possibilities.length;i++){
@@ -492,7 +582,7 @@ function validGuess(input){
 /* ========= 判斷 ========= */
 function checkA(a,g){ let A=0; for(let i=0;i<a.length;i++) if(a[i]===g[i]) A++; return A; }
 function checkB(a,g){ let B=0; for(let i=CharToInt(state.low);i<=CharToInt(state.high);i++){ let c=allowedChars[i]; B+=Math.min(countChar(a,c),countChar(g,c)); } return B-checkA(a,g); }
-function checkApulsB(a,g){
+function checkAplusB(a,g){
     return checkA(a,g)+checkB(a,g)
 }
 /* ========= 亂數 ========= */
