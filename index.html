@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版60</title>
+<title>1A2B 改版61</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -80,7 +80,7 @@ const state = {
     candidatescomputer:[],
     history: [],
     historybycomputer:[],
-    difficulty:-1,
+    difficulty:0,
     seeother:false
 };
 
@@ -96,9 +96,13 @@ function initialcandidates2(){
 }
 function deletecandidates(a){
     if(a===true){
+        if(state.history.length === 0) return;
+        if(state.candidates.length === 0) return;
          state.candidates = state.candidates.filter(s => checkAplusB(s, state.history[state.history.length-1].guess) === (state.history[state.history.length-1].A + state.history[state.history.length-1].B));
 
         }else{
+        if(state.historybycomputer.length === 0) return;
+        if(state.candidatescomputer.length === 0) return;
          state.candidatescomputer = state.candidatescomputer.filter(s => checkAplusB(s, state.historybycomputer[state.historybycomputer.length-1].guess) === (state.historybycomputer[state.historybycomputer.length-1].A + state.historybycomputer[state.historybycomputer.length-1].B));
 }
     
@@ -266,7 +270,7 @@ function randomize(str){
 }
 /* ========= 開始畫面 ========= */
 function renderStartPage(){
-    state.difficulty=-1;
+    state.difficulty=0;
     state.historybycomputer = [];
     state.history= [];
     state.answerbyuser=false;
@@ -295,7 +299,7 @@ function describe(){
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">遊戲規則：</span><br>答案由玩家設定，包含重複或不重複、位數及幾進位(本遊戲支援36進位 a=10 、b=11.. z=35)<br>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">提示按鈕：</span><br>輸入自己的答案後，告訴使用者是否與歷史紀錄矛盾<br>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">我來提示系統猜按鈕：</span><br>(此步驟會消耗一次猜的機會，請謹慎使用)輸入一個符合長度和上下界的數字，系統幫你排成和前面幾次猜測都不矛盾的組合，注意到假設無論怎麼湊都會矛盾，系統會自動猜一開始輸入的數<br>
-        <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">和電腦比賽(共同答案)</span><br>電腦隨機生成一個答案，然後互相比賽(三種難度相等)<br>
+        <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">和電腦比賽(共同答案)</span><br>電腦隨機生成一個答案，然後互相比賽<br>
         <span style="font-size: 25px; color: #ff1100; font-weight: bold;">以下這些按鈕在可能性太大時將無法執行</span><br>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">幫助按鈕：</span><br>提供一組與歷史紀錄不矛盾的答案<br>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">顯示剩餘解按鈕：</span><br>計算剩餘可能組合<br>        
@@ -338,25 +342,53 @@ function startGame3(){
     `;
 }
 function competeeasy(){
+    state.starttime=Date.now();
     state.seeother=document.getElementById("seeeachother").checked;
     state.difficulty=1;
     initialcandidatescomputer();
     initialcandidates();
+    state.historybycomputer = [];
+    state.history= [];
     renderGamePage();
 }
 function competemid(){
+    state.starttime=Date.now();
     state.seeother=document.getElementById("seeeachother").checked;
     state.difficulty=2;
     initialcandidatescomputer();
+    state.historybycomputer = [];
+    state.history= [];
     initialcandidates();
     renderGamePage();
 }
 function competehard(){
+    state.starttime=Date.now();
     state.seeother=document.getElementById("seeeachother").checked;
     state.difficulty=3;
     initialcandidatescomputer();
+    state.historybycomputer = [];
+    state.history= [];
     initialcandidates();
     renderGamePage();
+}
+function showdifficulty(){
+    let s="";
+    if(state.difficulty===1){
+        s="========簡單模式========";
+    }
+    else if(state.difficulty===2){
+        s="========中等模式========";
+    }
+    else if(state.difficulty===3){
+        s="========困難模式========";
+    }
+    else if(state.answerbyuser===false){
+        s="========電腦出========";
+    }
+    else{
+        s="========玩家出========";
+    }
+    document.getElementById("givedifficulty").innerText=`模式：${s} `;
 }
 /* ========= 使用者出題 ========= */
 function startGame2(){
@@ -365,6 +397,7 @@ function startGame2(){
     state.useRepeat=document.getElementById("useRepeat").checked;
     state.low=document.getElementById("lowInput").value;
     state.high=document.getElementById("highInput").value;
+    
 
     if(state.playerName.length===0){ alert("請輸入玩家名稱"); return; }
     if(CharToInt(state.low)===-1||CharToInt(state.high)===-1){ alert("最低或最高位不合法"); return; }
@@ -403,6 +436,7 @@ function TostartGame(){
 
 /* ========= 開始遊戲 ========= */
 function startGame(){
+    state.difficulty=0;
     const app=document.getElementById("app");
     state.guesscount=0;
     state.haveGuessed=false;
@@ -425,12 +459,12 @@ function startGame(){
     if(Istoobig()===0){
         initialcandidates();
     }
+  
     renderGamePage();
 }
 
 /* ========= 遊戲畫面 ========= */
 function renderGamePage(){
-    whowin();
     if(Istoobig()===1 && state.guesscount===1){
         initialcandidates2();
     }
@@ -450,11 +484,13 @@ function renderGamePage(){
     }
     app.innerHTML=`
         <h2 class="game-title">${titleWords}</h2>
+        <p id="givedifficulty"></p>
         <p>${InnerTexts}</p>
         <p>請猜${state.digit}位數，上限${state.high}，下限${state.low}</p>
         <p id="historys"></p>
         <p>第 ${state.guesscount+1} 次猜測</p>
         <input id="guessInput">
+        
 
         <div class="btn-group main-btn">
             <button onclick="guess()">猜</button>
@@ -478,27 +514,68 @@ function renderGamePage(){
         <p id="left"></p>
         <p id="candidates"></p>
     `;
-    showHistory();   
+    showHistory();  
+    showdifficulty();
 }
 
 /* ========= 猜 ========= */
 function whowin(){
-    if(state.history.length === 0 || state.historybycomputer.length === 0) return;
-
-    if(state.history[state.history.length-1].A === state.digit){
-        if(state.historybycomputer[state.historybycomputer.length-1].A === state.digit){
-            drawPage();
-        } else {
+    let a=state.historybycomputer.length ;
+    if(state.history.length === 0 &&a === 0) return;
+    if(state.difficulty===0){
+        if(state.history[state.history.length-1].A === state.digit){
             victoryPage();
         }
     }
-    else if(state.historybycomputer[state.historybycomputer.length-1].A === state.digit){
-        giveUp();
+    else{
+        if(state.history[state.history.length-1].A === state.digit && state.historybycomputer[state.historybycomputer.length-1].A === state.digit){
+            drawPage();
+        }
+        else if(state.history[state.history.length-1].A === state.digit){
+            victoryPage();
+        }
+        else if(state.historybycomputer[state.historybycomputer.length-1].A === state.digit){
+            giveUp();
+        }        
     }
 }
 
 function computerguess(){
-    let s=FinGivehelp(false);
+    let s="";
+    if (state.historybycomputer.length === 0) {
+        s = randomize(state.candidatescomputer[0]);
+    }
+    else{
+         let AsAndBs=0;
+        let AsAndBs2=0;
+        if (state.historybycomputer.length >=3) {
+            let a=state.historybycomputer[state.historybycomputer.length-1].A+state.historybycomputer[state.historybycomputer.length-2].A;
+            let b=state.historybycomputer[state.historybycomputer.length-1].B+state.historybycomputer[state.historybycomputer.length-2].B;
+            let c=state.historybycomputer[state.historybycomputer.length-1].A+state.historybycomputer[state.historybycomputer.length-1].B;
+            if(c===state.digit){
+                AsAndBs=a;
+                AsAndBs2=b;
+            }
+        }
+    if(state.difficulty===2 && (AsAndBs<=(2*state.digit-4) ||AsAndBs2===(2*state.digit-1))){
+            s=randomize(state.candidatescomputer[(Math.floor(Math.random() * state.candidatescomputer.length))%state.candidatescomputer.length]);
+            }
+    else if(state.difficulty===1 && AsAndBs<=2*state.digit-3||AsAndBs2===2*state.digit){
+            let s1=state.candidatescomputer[Math.floor(Math.random() * state.candidatescomputer.length)];
+            let s2=state.candidatescomputer[Math.floor(Math.random() * state.candidatescomputer.length)];
+            let s3 = [...s1, ...s2];        // 合併
+            let s4=s3;
+            if(state.useRepeat===false){
+                s4 = deletesame(s3);
+            }       // 去重
+            let result = s4.slice(0, state.digit); // 取前 N 位
+            s = result.join("");
+            s=randomize(s);
+            }
+    else{
+            s=FinGivehelp(false);
+    }
+    }
     let A=checkA(state.answer,s);
     let B=checkB(state.answer,s);
     state.historybycomputer.push({guess:s,A,B});
@@ -511,16 +588,17 @@ function guess(){
 
     let A=checkA(state.answer,input);
     let B=checkB(state.answer,input);
-    computerguess();
+    if(state.difficulty!==0){
+        computerguess();
+    }
     state.history.push({guess:input,A,B});
     state.haveGuessed=true;
 
     document.getElementById("result").innerText=`${input} → ${A}A${B}B`;
     whowin();
     showHistory();
-    if(Istoobig()===0 || (Istoobig()===1&&state.guesscount>=1))
-    deletecandidates(true);
-    if(state.seeother===true){
+if(Istoobig()===0 || (Istoobig()===1&&state.guesscount>=1))    deletecandidates(true);
+    if(state.seeother===true&& state.difficulty>=1){
         seeanddeletecandidates();
     }
 }
@@ -552,7 +630,9 @@ function guessbyrearrange(){
 
     let A=checkA(state.answer,input);
     let B=checkB(state.answer,input);
-    computerguess();
+    if(state.difficulty!==0){
+        computerguess();
+    }
     state.history.push({guess:input,A,B});
     state.haveGuessed=true;
 
@@ -560,15 +640,15 @@ function guessbyrearrange(){
     whowin();
     showHistory();
     /* ========= if(A===state.digit) victoryPage(); ========= */
-    deletecandidates(true);
-    if(state.seeother===true){
+    if(Istoobig()===0 || (Istoobig()===1&&state.guesscount>=1))    deletecandidates(true);
+    if(state.seeother===true&& state.difficulty>=1){
         seeanddeletecandidates();
     }
 }
 
 function nextRound(){
     if(!state.haveGuessed){ alert("請先猜一次"); return; }
-    if(state.seeother===true){
+    if(state.seeother===true&&state.difficulty>=1){
         seeanddeletecandidates();
     }
     state.guesscount++; state.haveGuessed=false;
@@ -629,21 +709,13 @@ function FinGivehelp(a){/* ========= true是使用者 ========= */
     let s2="";
     let founded=false;
     let cans=[];
-    if(a===true){
+    if(state.difficulty===0){
+        let num = Math.floor(Math.random() * cans.length);
         cans=state.candidates;
-    }
-    else{
-        cans=state.candidatescomputer;
-    }
-    let num = Math.floor(Math.random() * cans.length);
-    if(a===true){
         for(let i=0;i<cans.length;i++){
         let array=getPermutations(randomize(cans[(num+i)%cans.length]));
         for(let j=0;j<array.length;j++){
             if(correctguess(array[j])===-1){
-                if(correctguesscomputer(array[j])!==-1 && state.seeother===true){
-                    continue;
-                }
                 founded=true;
                 s2=array[j];
                 break;
@@ -654,7 +726,30 @@ function FinGivehelp(a){/* ========= true是使用者 ========= */
         }
         }
     }
-    else{
+    else if(state.difficulty>=0){
+        if(a===true){
+            cans=state.candidates;
+            let num = Math.floor(Math.random() * cans.length);
+            for(let i=0;i<cans.length;i++){
+            let array=getPermutations(randomize(cans[(num+i)%cans.length]));
+            for(let j=0;j<array.length;j++){
+            if(correctguess(array[j])===-1){
+                if(correctguesscomputer(array[j])!==-1 && state.seeother===true){
+                    continue;
+                }
+                founded=true;
+                s2=array[j];
+                break;
+            }
+        }
+            if(founded===true){
+                break;
+            }
+            }
+        }
+      else{
+          let num = Math.floor(Math.random() * cans.length);
+        cans=state.candidatescomputer;
         for(let i=0;i<cans.length;i++){
         let array=getPermutations(randomize(cans[(num+i)%cans.length]));
         for(let j=0;j<array.length;j++){
@@ -672,6 +767,8 @@ function FinGivehelp(a){/* ========= true是使用者 ========= */
         }
     }
     }
+    }
+    
     
     return s2;
 }
