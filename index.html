@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>1A2B 改版61</title>
+<title>1A2B 改版62</title>
 <style>
 /* 文字顏色 */
 #left { color: #dc2626; }
@@ -81,7 +81,8 @@ const state = {
     history: [],
     historybycomputer:[],
     difficulty:0,
-    seeother:false
+    seeother:false,
+    mode4_computerguess:""
 };
 
 const allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -286,6 +287,7 @@ function renderStartPage(){
             <button onclick="startGame()">電腦出題</button>
             <button onclick="startGame2()">我來出題</button>
             <button onclick="startGame3()">和電腦比賽(共同答案)</button>
+            <button onclick="startGame4()">和電腦比賽(互相出題)</button>
             <button onclick="describe()">規則說明</button>
         </div>
     `;
@@ -300,6 +302,7 @@ function describe(){
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">提示按鈕：</span><br>輸入自己的答案後，告訴使用者是否與歷史紀錄矛盾<br>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">我來提示系統猜按鈕：</span><br>(此步驟會消耗一次猜的機會，請謹慎使用)輸入一個符合長度和上下界的數字，系統幫你排成和前面幾次猜測都不矛盾的組合，注意到假設無論怎麼湊都會矛盾，系統會自動猜一開始輸入的數<br>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">和電腦比賽(共同答案)</span><br>電腦隨機生成一個答案，然後互相比賽<br>
+        <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">和電腦比賽(各自答案)</span><br>各自出一個，然後互相比賽(只有困難上難度)<br>
         <span style="font-size: 25px; color: #ff1100; font-weight: bold;">以下這些按鈕在可能性太大時將無法執行</span><br>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">幫助按鈕：</span><br>提供一組與歷史紀錄不矛盾的答案<br>
         <span style="font-size: 20px; color: #ffcc00; font-weight: bold;">顯示剩餘解按鈕：</span><br>計算剩餘可能組合<br>        
@@ -311,6 +314,375 @@ function describe(){
 }
 
 /* ========= 和電腦比賽 ========= */
+function startGame4(){
+    if(Istoobig()!==0){
+        alert("太多位數了，這樣電腦會爆炸");
+        return;
+    }
+    state.guesscount=0;
+    state.haveGuessed=false;
+    state.playerName=document.getElementById("nameInput").value;
+    state.digit=Number(document.getElementById("digitInput").value);
+    state.useRepeat=document.getElementById("useRepeat").checked;
+    state.low=document.getElementById("lowInput").value;
+    state.high=document.getElementById("highInput").value;
+
+    if(state.playerName.length===0){ alert("請輸入玩家名稱"); return; }
+    if(CharToInt(state.low)===-1||CharToInt(state.high)===-1){ alert("最低或最高位不合法"); return; }
+    if(CharToInt(state.high)<CharToInt(state.low)){ alert("最高位不能小於最低位"); return; }
+    if(!state.useRepeat && CharToInt(state.high)-CharToInt(state.low)+1<state.digit){ alert("字元數不足，必定重複"); return; }
+    state.answerbyuser = false;
+    state.seeother=true;
+    if(!state.answerbyuser){ state.answer=state.useRepeat?RandomNumberRepeat():RandomNumberNoRepeat(); }
+    const app = document.getElementById("app");
+     app.innerHTML = `
+        <h2 class="start-title">請選擇難易度</h2>
+        <button onclick="competeeasy2()">簡單</button>
+        <button onclick="competemid2()">中等</button>
+        <button onclick="competehard2()">困難</button>
+     <!-- 我不會崩潰 <input type="checkbox" id="seeeachother"> -->
+        <button onclick="renderStartPage()">回首頁</button>
+
+    `;
+}
+function competehard2(){
+    state.starttime=Date.now();
+    state.difficulty=-3;
+    initialcandidatescomputer();
+    state.historybycomputer = [];
+    state.history= [];
+    initialcandidates();
+    mode4Gamepage();
+}
+function competemid2(){
+    state.starttime=Date.now();
+    state.difficulty=-2;
+    initialcandidatescomputer();
+    state.historybycomputer = [];
+    state.history= [];
+    initialcandidates();
+    mode4Gamepage();
+}
+function competeeasy2(){
+    state.starttime=Date.now();
+    state.difficulty=-1;
+    initialcandidatescomputer();
+    state.historybycomputer = [];
+    state.history= [];
+    initialcandidates();
+    mode4Gamepage();
+}
+function mode4Gamepage(){
+    const app=document.getElementById("app");
+    let titleWords = "猜對方出的數字";
+    let InnerTexts = "請輸入電腦猜的結果以及你的猜測";
+    app.innerHTML=`
+        <h2 class="game-title">${titleWords}</h2>
+        <p>${InnerTexts}</p>
+        <p>請猜${state.digit}位數，上限${state.high}，下限${state.low}</p>
+        <p id="historys"></p>
+        <p>第 ${state.guesscount+1} 次猜測</p>
+        <input id="mode4_guessInput">
+        <p id="text_mode4_computerguess"></p>
+        <input id="A_bycomputer" type="number">
+        <input id="B_bycomputer" type="number">
+
+        <div class="btn-group main-btn">
+            <button onclick="mode_4guess()">猜</button>
+            <button onclick="mode_4guessbyrearrange()">我來提示系統猜</button>
+            <button onclick="nextRound_mode4()">下一次</button>
+        </div>
+        <div class="btn-group helper-btn">
+            <button onclick="giveHint_mode4()">提示</button>
+            <button onclick="giveHelp_mode4()">幫助</button>
+            <button onclick="showLeft()">顯示剩餘解數量</button>
+            <button onclick="showcandidates()">顯示候選人</button>
+        </div>
+        <div class="btn-group danger-btn">
+            <button onclick="giveUp()">放棄</button>
+            <button onclick="renderStartPage()">回開始</button>
+        </div>
+
+        <p id="result"></p>
+        <p id="hint"></p>
+        <p id="help"></p>
+        <p id="left"></p>
+        <p id="candidates"></p>
+    `;
+    showHistory();  
+    mode4_computerguess_s();
+}
+function giveHint_mode4(){
+    if(state.history.length===0){ alert("第一次沒有提示"); return; }
+    let input=document.getElementById("mode4_guessInput").value;
+    if(!validGuess(input)) return;
+    let a=correctguess(input);
+    let msg=(a===-1)?"此猜測與所有歷史紀錄相容":`與你猜的第 ${a+1} 次猜測矛盾`;
+    document.getElementById("hint").innerText=msg;
+}
+function giveHelp_mode4(){
+    let s2="";
+    let cans=state.candidates;
+    let founded=false;
+    let num = Math.floor(Math.random() * cans.length);
+    if (state.history.length === 0) {
+        s2 = randomize(state.candidates[num]);
+    }
+    else{ 
+        for(let i=0;i<cans.length;i++){
+        let array=getPermutations(randomize(cans[(num+i)%cans.length]));
+        for(let j=0;j<array.length;j++){
+            if(correctguess(array[j])===-1){
+                founded=true;
+                s2=array[j];
+                break;
+            }
+        }
+        if(founded===true){
+            break;
+        }
+    }
+    
+    }
+    document.getElementById("help").innerText=`${s2} 是一組解`;
+}
+function nextRound_mode4(){
+    if(!state.haveGuessed){ alert("請先猜一次"); return; }
+    state.guesscount++; state.haveGuessed=false;
+    mode4Gamepage();
+}
+function mode4_computerguess_s(){
+    let s="";
+    let cans=state.candidatescomputer;
+    let founded=false;
+    let num = Math.floor(Math.random() * cans.length);
+    if (state.historybycomputer.length === 0) {
+        s = randomize(state.candidatescomputer[num]);
+    }
+    else{ 
+        for(let i=0;i<cans.length;i++){
+        let array=getPermutations(randomize(cans[(num+i)%cans.length]));
+        for(let j=0;j<array.length;j++){
+            if(correctguesscomputer(array[j])===-1){
+                founded=true;
+                s=array[j];
+                break;
+            }
+        }
+        if(founded===true){
+            break;
+        }
+    }
+    
+    }
+    state.mode4_computerguess=s;
+    document.getElementById("text_mode4_computerguess").innerText=`電腦猜${s}，告訴她結果`;
+}
+function validinputAandB(){
+    let s="";
+    let cans=state.candidatescomputer;
+    let founded=false;
+    let num = Math.floor(Math.random() * cans.length);
+    if (state.historybycomputer.length === 0) {
+        s = randomize(state.candidatescomputer[num]);
+    }
+    else{ 
+        for(let i=0;i<cans.length;i++){
+        let array=getPermutations(randomize(cans[(num+i)%cans.length]));
+        for(let j=0;j<array.length;j++){
+            if(correctguesscomputer(array[j])===-1){
+                founded=true;
+                s=array[j];
+                break;
+            }
+        }
+        if(founded===true){
+            break;
+        }
+    }
+    
+    }
+    return founded;
+}
+function mode4_howmuchleft(a,b){
+    let count2=0;
+    let possibilities=state.candidates;
+    let last = state.history.length - 1;
+    state.history[last].A = a;
+    state.history[last].B = b;
+    for(let i=0;i<possibilities.length;i++){
+        let maybe=getPermutations(possibilities[i]);
+        for(let j=0;j<maybe.length;j++){
+            if(correctguess(maybe[j])===-1){
+                count2++;
+            }
+        }
+    }
+    return count2;
+}
+function mode4_whichAandB(){
+    let tempA=1;
+    let tempB=0;
+    let tempLeft=0;
+    for(let i=0;i<=state.digit;i++){
+        for(let j=0;j<=state.digit-i;j++){
+            if(mode4_howmuchleft(i,j)===0){
+                continue;
+            }
+            if(mode4_howmuchleft(i,j)>tempLeft){
+                tempA=i;
+                tempB=j;
+                tempLeft=mode4_howmuchleft(i,j);
+            }
+        }
+    }
+    let result=1000*tempA+tempB;
+    return Number(result);
+}
+function mode_4guess(){
+    let input=document.getElementById("mode4_guessInput").value;
+    if(state.haveGuessed){ alert("本回合已猜"); return; }
+    if(!validGuess(input)) return;
+    
+    let A_computer=document.getElementById("A_bycomputer").value;
+    let B_computer=document.getElementById("B_bycomputer").value;
+    
+    state.historybycomputer.push({
+    guess: state.mode4_computerguess,
+    A: Number(A_computer),
+    B: Number(B_computer)
+});
+    if(validinputAandB()===false){
+        state.historybycomputer.pop();
+        alert("請輸入正確樣貌");
+        return;
+    }
+    
+    deletecandidates(false);
+    let A=0;
+    let B=0;
+    if(state.difficulty===-3){
+            /*=====生成苦逼選手=====*/
+    state.history.push({guess:input,A,B});
+    let giveAandB=mode4_whichAandB();
+    A=Math.floor(giveAandB / 1000);
+    B=giveAandB%1000;
+    state.history[state.history.length-1].guess=input;
+    state.history[state.history.length-1].A=A;
+    state.history[state.history.length-1].B=B;
+    deletecandidates(true);
+    /*=====生成苦逼選手鄰時答案=====*/
+ let  founded=false;
+      let cans=state.candidates;
+        let num = Math.floor(Math.random() * cans.length);
+        for(let i=0;i<cans.length;i++){
+        let array=getPermutations(randomize(cans[(num+i)%cans.length]));
+        for(let j=0;j<array.length;j++){
+            if(correctguess(array[j])===-1){
+                founded=true;
+                state.answer=array[j];
+                break;
+            }
+        }
+        if(founded===true){
+            break;
+        }
+        }
+    }
+    else{
+         A=checkA(input,state.answer);
+        B=checkB(input,state.answer);
+        state.history.push({guess:input,A,B});
+        deletecandidates(true);
+        
+    }
+    state.haveGuessed=true;
+
+    document.getElementById("result").innerText=`${input} → ${A}A${B}B`;
+    whowin();
+    showHistory();
+}
+function mode_4guessbyrearrange(){
+    if(state.haveGuessed){ alert("本回合已猜"); return; }
+    let input=document.getElementById("mode4_guessInput").value;
+    if(!validGuess(input)) return;
+    
+    let A_computer=document.getElementById("A_bycomputer").value;
+    let B_computer=document.getElementById("B_bycomputer").value;
+    /*=====電腦猜=====*/
+state.historybycomputer.push({
+    guess: state.mode4_computerguess,
+    A: Number(A_computer),
+    B: Number(B_computer)
+});
+    if(validinputAandB()===false){
+        state.historybycomputer.pop();
+        alert("請輸入正確樣貌");
+        return;
+    }
+
+    deletecandidates(false);
+    /*=====電腦猜=====*/
+    /*=====生成苦逼選手=====*/
+    let testarray=getPermutations(input);
+    let founded=false;
+    /*=====生成答案=====*/
+    for(let i=0;i<testarray.length;i++){
+        if(correctguess(testarray[i]) === -1){
+            if(correctguesscomputer(testarray[i]) !== -1&&state.seeother===true){
+                continue;
+            }
+            alert(`系統找到了，將猜測 ${testarray[i]}`);
+            input = testarray[i];
+            founded=true;
+            break;
+        }
+    }
+
+    if(founded===false){
+        alert(`系統找不到，將猜測 ${input}`);
+    }
+        if(state.difficulty===-3){
+            /*=====生成苦逼選手=====*/
+    state.history.push({guess:input,A,B});
+    let giveAandB=mode4_whichAandB();
+    A=Math.floor(giveAandB / 1000);
+    B=giveAandB%1000;
+    state.history[state.history.length-1].guess=input;
+    state.history[state.history.length-1].A=A;
+    state.history[state.history.length-1].B=B;
+    deletecandidates(true);
+    /*=====生成苦逼選手鄰時答案=====*/
+ let  founded=false;
+      let cans=state.candidates;
+        let num = Math.floor(Math.random() * cans.length);
+        for(let i=0;i<cans.length;i++){
+        let array=getPermutations(randomize(cans[(num+i)%cans.length]));
+        for(let j=0;j<array.length;j++){
+            if(correctguess(array[j])===-1){
+                founded=true;
+                state.answer=array[j];
+                break;
+            }
+        }
+        if(founded===true){
+            break;
+        }
+        }
+    }
+    else{
+         A=checkA(input,state.answer);
+        B=checkB(input,state.answer);
+        state.history.push({guess:input,A,B});
+        deletecandidates(true);
+        
+    }
+    state.haveGuessed=true;
+    document.getElementById("result").innerText=`${input} → ${A}A${B}B`;
+    whowin();
+    showHistory();
+    deletecandidates(true);
+}
 function startGame3(){
     if(Istoobig()!==0){
         alert("太多位數了，這樣電腦會爆炸");
@@ -374,19 +746,19 @@ function competehard(){
 function showdifficulty(){
     let s="";
     if(state.difficulty===1){
-        s="========簡單模式========";
+        s="<簡單模式>";
     }
     else if(state.difficulty===2){
-        s="========中等模式========";
+        s="<中等模式>";
     }
     else if(state.difficulty===3){
-        s="========困難模式========";
+        s="<困難模式>";
     }
     else if(state.answerbyuser===false){
-        s="========電腦出========";
+        s="<電腦出題>";
     }
     else{
-        s="========玩家出========";
+        s="<玩家出題>";
     }
     document.getElementById("givedifficulty").innerText=`模式：${s} `;
 }
@@ -539,7 +911,6 @@ function whowin(){
         }        
     }
 }
-
 function computerguess(){
     let s="";
     if (state.historybycomputer.length === 0) {
@@ -710,8 +1081,8 @@ function FinGivehelp(a){/* ========= true是使用者 ========= */
     let founded=false;
     let cans=[];
     if(state.difficulty===0){
-        let num = Math.floor(Math.random() * cans.length);
         cans=state.candidates;
+        let num = Math.floor(Math.random() * cans.length);
         for(let i=0;i<cans.length;i++){
         let array=getPermutations(randomize(cans[(num+i)%cans.length]));
         for(let j=0;j<array.length;j++){
@@ -748,8 +1119,9 @@ function FinGivehelp(a){/* ========= true是使用者 ========= */
             }
         }
       else{
+          cans=state.candidatescomputer;
           let num = Math.floor(Math.random() * cans.length);
-        cans=state.candidatescomputer;
+        
         for(let i=0;i<cans.length;i++){
         let array=getPermutations(randomize(cans[(num+i)%cans.length]));
         for(let j=0;j<array.length;j++){
@@ -802,13 +1174,14 @@ function showLeft(){
 
 /* ========= 結果 ========= */
 function victoryPage(){
+    let b=state.answer;
     const app=document.getElementById("app");
     let a=spendtime();
     state.seeother=true;
     app.innerHTML=`
         <h2 class="win-title">🎉 恭喜猜中！</h2>
         <p id="historys"></p>
-        <p>答案：${state.answer}</p>
+        <p>答案：${b}</p>
         <p>耗時：${a}秒</p>
         <button onclick="renderStartPage()">回開始</button>
     `;
@@ -817,11 +1190,13 @@ function victoryPage(){
 function giveUp(){
     const app=document.getElementById("app");
     let a=spendtime();
+    let b=state.answer;
+    let c="qwer";
     state.seeother=true;
     app.innerHTML=`
         <h2 class="lose-title">你輸了</h2>
         <p id="historys"></p>
-        <p>答案：${state.answer}</p>
+        <p>答案：${b}</p>
         <p>耗時：${a}秒</p>
         <button onclick="renderStartPage()">回開始</button>
     `;
@@ -831,10 +1206,11 @@ function drawPage(){
     const app=document.getElementById("app");
     let a=spendtime();
     state.seeother=true;
+    let b=state.answer;
     app.innerHTML=`
         <h2 class="lose-title">平手</h2>
         <p id="historys"></p>
-        <p>答案：${state.answer}</p>
+        <p>答案：${b}</p>
         <p>耗時：${a}秒</p>
         <button onclick="renderStartPage()">回開始</button>
     `;
